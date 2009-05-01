@@ -1,9 +1,14 @@
 <?php
 define( "USE_CACHE", false );
 
+
+
 function owad_get_data()
 {
-	if ( file_exists( OWAD_CACHE_FILE ) && USE_CACHE )
+	if ( !USE_CACHE )
+		return owad_fetch_todays_word();
+		
+	if ( file_exists( OWAD_CACHE_FILE ) )
 	{
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
 		$counts = count( $words );
@@ -37,8 +42,7 @@ function owad_get_data()
 			return $set;
 		}
 	}
-	else
-		return owad_fetch_todays_word();
+
 }
 
 function owad_get_timestamp($date)
@@ -82,8 +86,20 @@ function owad_save_set( $set, $words )
 	fwrite( $file , $words->asXML() );
 }
 
-function owad_fetch_archive_word()
+function owad_fetch_archive_words()
 {
+	if ( file_exists( OWAD_CACHE_FILE ) )
+	{
+		$words = simplexml_load_file( OWAD_CACHE_FILE );
+		$counts = count( $words );
+		
+		for ( $i=1; $counts >= $i; $i++ )
+		{
+			$word = $words->word[$i];
+			$sets[] = owad_extract_set( $word, $word->attributes() );
+			
+			return $sets;
+		}	
 }
 
 function owad_fetch_todays_word()
