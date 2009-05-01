@@ -1,8 +1,9 @@
 <?php
+define( "USE_CACHE", false );
 
 function owad_get_data()
 {
-	if ( file_exists( OWAD_CACHE_FILE ) )
+	if ( file_exists( OWAD_CACHE_FILE ) && USE_CACHE )
 	{
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
 		$counts = count( $words );
@@ -36,6 +37,8 @@ function owad_get_data()
 			return $set;
 		}
 	}
+	else
+		return owad_fetch_todays_word();
 }
 
 function owad_get_timestamp($date)
@@ -87,41 +90,22 @@ function owad_fetch_todays_word()
 {	
 	// http://owad.de/yesterday.php4?date=2009-03-15
 	$file = "http://owad.de/index.php4";
+	$page = wp_remote_fopen($file);
 
-	$opened_file = wp_remote_fopen($file);
-
-	// fetch the content of interest
-	$pos_start 	= strpos( $opened_file, "See today's word:") +  strlen( "See today's word:" );
-	$pos_end 	= strpos( $opened_file, "<!--werbung-->");
-	$len = $pos_end - $pos_start;
+	$pattern = "[[:print:]]+";
 	
-	$opened_file = substr( $opened_file, $pos_start, $len );
-
-	// get word ID
-	$pos_start  = strpos( $opened_file, "wordid=" ) + strlen( "wordid=" );
-	$pos_end	= strpos( $opened_file, "&choice" );
-	$len = $pos_end - $pos_start;
+	preg_match( '/wordid=[0-9]{1,4}/', $page, $array );
+	$wordid = str_replace( "wordid=", "", $array[0] );
 	
-	$wordid = substr( $opened_file, $pos_start, $len );
-
-	// remove all tags
-	$opened_file = strip_tags( $opened_file );
+	preg_match_all( '/<a href="check.php4[^>]+>'. $pattern .'<\/a>/', $page, $array );
+	$alternatives = array( "", "", ""); // if no matches are found
+	$alternatives = $array[0];
 	
-	// get today's word
-	$pos = strpos( $opened_file, "Now choose" );
-	$todays_word = substr( $opened_file, 0, $pos );
-
-	// get the alternatives
-	$pos_alt_1 = strpos( $opened_file, 'a)' ) + 2;
-	$pos_alt_2 = strpos( $opened_file, 'b)' ) + 2;
-	$pos_alt_3 = strpos( $opened_file, 'c)' ) + 2;
-	
-	$len_1 = $pos_alt_2 - $pos_alt_1 -2;
-	$len_2 = $pos_alt_3 - $pos_alt_2 -2;
-	
-	$alternatives[] = substr( $opened_file, $pos_alt_1, $len_1 );
-	$alternatives[] = substr( $opened_file, $pos_alt_2, $len_2 );
-	$alternatives[] = substr( $opened_file, $pos_alt_3 );
+	for( $i=0; $i<3; $i++)
+		$alternatives[$i] = strip_tags( $alternatives[$i] );
+			
+	preg_match( "/See today's word: [^<]+/", $page, $array );
+	$todays_word = trim( str_replace( "See today's word:", "", $array[0] ) ); 
 	
 	// calculate the date, on the weekend there's no new word, so the date has to calculated
 	// with an offset of either one or two days
@@ -131,6 +115,7 @@ function owad_fetch_todays_word()
 		case 0: 	$multiplicator = 2;
 					break;
 		case 6: 	$multiplicator = 1;
+		default:	break;
 	};
 	
 	// Wenn Samstag, dann $offset = Sekunden eines Tags, 
