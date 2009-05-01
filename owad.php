@@ -71,9 +71,9 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 	What does <strong><?= $todays_word ?></strong> mean?
 	
 	<table>
-	<tr><td>a)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=1" target="_blank"> <?= $alternatives[0] ?> </a> </td></tr>
-	<tr><td>b)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=3" target="_blank"> <?= $alternatives[1] ?> </a> </td></tr>
-	<tr><td>c)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=5" target="_blank"> <?= $alternatives[2] ?> </a> </td></tr>
+	<tr><td valign="top">a)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=1" target="_blank"> <?= $alternatives[0] ?> </a> </td></tr>
+	<tr><td valign="top">b)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=3" target="_blank"> <?= $alternatives[1] ?> </a> </td></tr>
+	<tr><td valign="top">c)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=5" target="_blank"> <?= $alternatives[2] ?> </a> </td></tr>
 	</table>
 	
 	</div>
