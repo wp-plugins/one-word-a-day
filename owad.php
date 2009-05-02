@@ -59,48 +59,56 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 	// OWAD FRONTEND START
    function owad($args) 
    {
+   	
    	extract( $args );
 	
 	$content = owad_get_data();
 	extract( $content );
     
 	echo $before_widget;
-	echo $before_title .'One Word A Day'. $after_title; ?>
+	echo $before_title .'One Word A Day'. $after_title;
 
-	<div>
-	What does <strong><?= $todays_word ?></strong> mean?
-	
-	<table>
-	<tr><td valign="top">a)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=1" target="_blank"> <?= $alternatives[0] ?> </a> </td></tr>
-	<tr><td valign="top">b)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=3" target="_blank"> <?= $alternatives[1] ?> </a> </td></tr>
-	<tr><td valign="top">c)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=5" target="_blank"> <?= $alternatives[2] ?> </a> </td></tr>
-	</table>
-	
-	<?php
-	$sets = owad_fetch_archive_words();
-	
-	$counts = count( $sets );
-	if ( $counts > 1 )
+	if ( owad_supported_by_host() )
 	{
-	
-		echo '<form id="owad_wordid">';
-		echo '<select style="width:100%;" name="wordid" onchange="alert();">';
+		?>
 		
-		for ( $i = $counts; $i>0; $i-- )
+		What does <strong><?= $todays_word ?></strong> mean?
+		
+		<table>
+		<tr><td valign="top">a)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=1" target="_blank"> <?= $alternatives[0] ?> </a> </td></tr>
+		<tr><td valign="top">b)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=3" target="_blank"> <?= $alternatives[1] ?> </a> </td></tr>
+		<tr><td valign="top">c)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=5" target="_blank"> <?= $alternatives[2] ?> </a> </td></tr>
+		</table>
+		
+		<?php
+
+		
+	
+		$sets = owad_fetch_archive_words();
+		
+		$counts = count( $sets );
+		if ( $counts > 1 )
 		{
-			if ( empty( $sets[$i-1]["wordid"] ) ) continue;
+		
+			echo '<form id="owad_wordid">';
+			echo '<select style="width:100%;" name="wordid" onchange="alert();">';
 			
-			echo  '<option value="'. $sets[$i-1]["wordid"] .'">'. htmlentities( $sets[$i-1]["todays_word"] ) .'</option>';
+			for ( $i = $counts; $i>0; $i-- )
+			{
+				if ( empty( $sets[$i-1]["wordid"] ) ) continue;
+				
+				echo  '<option value="'. $sets[$i-1]["wordid"] .'">'. htmlentities( $sets[$i-1]["todays_word"] ) .'</option>';
+			}
+				
+			echo '</select>';
+			echo '</form>';
 		}
-			
-		echo '</select>';
-		echo '</form>';
 	}
-	?>
+	else
+		echo 	'If you can read this text this widget isn\'t supported by this blog\'s host!<br/> 
+				<br/>Please leave a comment <a href="http://slopjong.de/2009/03/20/one-word-a-day/" 
+				target="_blank">here</a> to help me to improve this widget.';
 	
-	</div>
-	
-	<?php
 	echo $after_widget;
 	}
 	// OWAD FRONTEND ENDE
@@ -108,8 +116,11 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 
 	// OWAD BACKEND START
 	function owad_control() 
-	{
-
+	{		
+		if ( ! owad_supported_by_host() )
+			echo 'If you can read this text this widget isn\'t supported by this blog\'s host!<br/> 
+				<br/>Please leave a comment <a href="http://slopjong.de/2009/03/20/one-word-a-day/" 
+				target="_blank">here</a> to help me to improve this widget.';
 	}
 	// OWAD BACKEND START
 	
