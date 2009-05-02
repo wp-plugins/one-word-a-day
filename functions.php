@@ -43,15 +43,6 @@ function owad_get_data()
 
 }
 
-function owad_get_timestamp($date)
-{
-	$date = split( '-', $date );
-	$ts = mktime( 0, 0, 0, $date[1], $date[2], $date[0] );
-	return $ts;
-}
-
-
-
 function owad_extract_set( $word, $attributes )
 {
 	$set = array(
