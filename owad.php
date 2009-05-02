@@ -76,6 +76,28 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 	<tr><td valign="top">c)</td><td> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=5" target="_blank"> <?= $alternatives[2] ?> </a> </td></tr>
 	</table>
 	
+	<?php
+	$sets = owad_fetch_archive_words();
+	
+	$counts = count( $sets );
+	if ( $counts > 1 )
+	{
+	
+		echo '<form id="owad_wordid">';
+		echo '<select style="width:100%;" name="wordid" onchange="alert();">';
+		
+		for ( $i = $counts; $i>0; $i-- )
+		{
+			if ( empty( $sets[$i-1]["wordid"] ) ) continue;
+			
+			echo  '<option value="'. $sets[$i-1]["wordid"] .'">'. htmlentities( $sets[$i-1]["todays_word"] ) .'</option>';
+		}
+			
+		echo '</select>';
+		echo '</form>';
+	}
+	?>
+	
 	</div>
 	
 	<?php
