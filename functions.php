@@ -1,7 +1,5 @@
 <?php
-define( "USE_CACHE", false );
-
-
+define( "USE_CACHE", true );
 
 function owad_get_data()
 {
@@ -87,19 +85,27 @@ function owad_save_set( $set, $words )
 }
 
 function owad_fetch_archive_words()
-{
+{	//*
 	if ( file_exists( OWAD_CACHE_FILE ) )
-	{
+ 	{
+ 		$sets = array();
+ 		
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
 		$counts = count( $words );
 		
-		for ( $i=1; $counts >= $i; $i++ )
+		if ( $counts >= 2)
 		{
-			$word = $words->word[$i];
-			$sets[] = owad_extract_set( $word, $word->attributes() );
-			
-			return $sets;
-		}	
+			for ( ; $counts > 0; $counts-- )
+			{
+				$word = $words->word[$counts-1];
+				$att = $word->attributes();
+				$sets[] = owad_extract_set( $word, $att );				
+			}
+		}
+		
+		return $sets;
+	}
+	//*/
 }
 
 function owad_fetch_todays_word()
