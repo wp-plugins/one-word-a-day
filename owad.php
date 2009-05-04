@@ -77,7 +77,7 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 	{
 		?>
 		
-		<p>
+		<div>
 		What does <strong><span id="owad_todays_word"><?= $todays_word ?></span></strong> mean?
 		
 		<table>
@@ -85,7 +85,7 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 		<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=3" target="_blank"> <?= $alternatives[1] ?> </a> </span> </td></tr>
 		<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://www.owad.de/check.php4?id=<?= $wordid ?>&choice=5" target="_blank"> <?= $alternatives[2] ?> </a> </span> </td></tr>
 		</table>
-		</p>
+		</div>
 		
 		<?php
 		$sets = owad_fetch_archive_words();
