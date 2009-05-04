@@ -58,6 +58,16 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 	wp_register_script('jquery', ("http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"), false, '1.3.2');
 	wp_enqueue_script('jquery');
 	
+	if ( !file_exists(OWAD_CACHE_FILE) )
+	{
+		$template = '
+			<?xml version="1.0" encoding="UTF-8"?>
+			<words>
+			</words>
+			';
+		file_put_contents( OWAD_CACHE_FILE , $template);	
+	}
+	
 	if ( !function_exists('wp_register_sidebar_widget') )
 		return;
 
