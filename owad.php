@@ -6,7 +6,7 @@ Description:  	Displays a new English word every day with a multiple choice quiz
 Author: 		Romain Schmitz
 Author URI: 	http://slopjong.de
 License:     	GNU General Public License
-Last Change: 	20.3.2009
+Last Change: 	4.5.2009
 Version: 		0.2
 
 This program is free software; you can redistribute it and/or modify
