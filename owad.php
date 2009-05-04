@@ -7,7 +7,7 @@ Author: 		Romain Schmitz
 Author URI: 	http://slopjong.de
 License:     	GNU General Public License
 Last Change: 	4.5.2009
-Version: 		0.2
+Version: 		0.2.1
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 */
 
-define('OWAD_VERSION',"0.2");
+define('OWAD_VERSION',"0.2.1");
 
 define('OWAD_FOLDER', dirname(plugin_basename(__FILE__)));
 define('OWAD_URLPATH', get_option('siteurl').'/wp-content/plugins/' . OWAD_FOLDER.'/');
