@@ -14,25 +14,17 @@ function owad_get_data()
 		if ( $counts > 0 )
 		{
 			$word = $words->word[$counts - 1];
-			$attributes = $word->attributes();
-
-			$last_word_date = $attributes[1];
+			$last_word_date_xml = $word->attributes()->date;
 			
-			// load the cache date from the server to handle timezone issues
-			$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php?now");
-			$time = split( '-', $now );
-			$weekday = date( 'w', mktime( 0, 0, 0, $time[1], $time[2], $time[0]) );
-			
-			// Wenn das heutige Datum nicht mit dem aus dem Set übereinstimmt und kein
-			// Wochenende ist, lade das neue Wort
-			if ( ( $last_word_date != $now ) && ( $weekday != 0 ) && ( $weekday != 6 ) && !owad_is_holiday( $now ) )
+			// compare the file's last word date with the last word date
+			if ( ( $last_word_date_xml != owad_last_word_date() ) )
 			{
 				$new_word = owad_fetch_todays_word();
 				owad_save_set( $new_word, $words );
 				return $new_word;
 			}	
 			
-			$last_word = owad_extract_set( $word, $attributes );
+			$last_word = owad_extract_set( $word );
 			return $last_word;
 		}
 		else
@@ -45,11 +37,35 @@ function owad_get_data()
 	}
 }
 
-// This can be optimized a bit
-// a timestamp should be used instaed of a date
+function owad_last_word_date()
+{
+	// holidays are not considered yet
+	$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php");
+	$time = split( '-', $now );
+	
+	// calculate the date, on the weekend there's no new word, so the date has to calculated
+	// with an offset of either one or two days
+	$offset = 0;
+	switch ( date("w", mktime( 0, 0, 0, $time[1], $time[2]) ))
+	{
+		case 0: 	$offset = 2;
+					break;
+		case 6: 	$offset = 1;
+		default:	break;
+	};
+	
+	do
+	{
+		$date = date( 'Y-m-d' , mktime( 0, 0, 0, $time[1], $time[2] - $offset ) );
+		$offset++;
+	} while( owad_is_holiday( $date ) );
+	
+	return $date;	
+}
+
 function owad_is_holiday( $date )
 {
-	$holidays[] = array(
+	$holidays = array(
 	date( "Y-m-d", mktime( 0, 0, 0, 1, 1 ) ),
 	date( "Y-m-d", mktime( 0, 0, 0, 5, 1) ),
 	date( "Y-m-d", mktime( 0, 0, 0, 5, 21 ) ),
@@ -60,16 +76,20 @@ function owad_is_holiday( $date )
 	return in_array( $date, $holidays );
 }
 
-function owad_extract_set( $word, $attributes )
+function owad_extract_set( $word )
 {
+	$attributes = $word->attributes();
+	
+	// in the first version of this widget the data in the xml file had white spaces.
+	// that's why trim is used here
 	$set = array(
-	  "wordid" => $attributes[0],
-	  "date" => $attributes[1],
-	  "todays_word" => $attributes[2],
+	  "wordid" => "". trim( $attributes->wordid ),
+	  "date" => "". trim ( $attributes->date ),
+	  "todays_word" => "". trim( $attributes->content ),
 	  "alternatives" => array( 
-		$word->alternative[0],
-		$word->alternative[1],
-		$word->alternative[2]
+		"". trim( $word->alternative[0] ),
+		"". trim( $word->alternative[1] ),
+		"". trim( $word->alternative[2] )
 		)
 	  );
 
@@ -146,30 +166,7 @@ function owad_fetch_todays_word()
 	preg_match( "/See today's word: [^<]+/", $page, $array );
 	$todays_word = trim( str_replace( "See today's word:", "", $array[0] ) ); 
 	
-	// holidays are not considered yet
-	$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php");
-	$time = split( '-', $now );
-	
-	// calculate the date, on the weekend there's no new word, so the date has to calculated
-	// with an offset of either one or two days
-	$multiplicator = 0;
-	switch ( date("w") )
-	{
-		case 0: 	$multiplicator = 2;
-					break;
-		case 6: 	$multiplicator = 1;
-		default:	break;
-	};
-	
-	// Wenn Samstag, dann $offset = Sekunden eines Tags, 
-	// wenn Sonntag, dann $offset = Sekunden von 2 Tagen
-	$offset = 60 * 60 * 24 * $multiplicator;
-	
-	//do
-	{
-		$date = date( 'Y-m-d' , mktime( 0, 0, 0, $time[1], $time[2]) - $offset );
-	} 
-	//while( owad_is_holiday( $date ) )
+	$date = owad_last_word_date();
 	
 	$return_value = array(
 		"wordid" => $wordid,
@@ -181,12 +178,25 @@ function owad_fetch_todays_word()
 	return $return_value;		
 }
 
-// This only checks if cURL is installed on the server. It's returns true all time
-// because cURL isn't used.
+function owad_get_word_by_id( $id )
+{
+	$words = simplexml_load_file( OWAD_CACHE_FILE );
+	$counts = count( $words );
+	
+	for ( $i=0; $i<$counts; $i++)
+	{
+		$word = $words->word[$i];
+		$attributes = $word->attributes();
+		if ( $id == $attributes[0] )
+			return owad_extract_set( $word, $attributes );
+	}
+	
+	return NULL;
+}
+
 function owad_supported_by_host()
 {
 	$modules = get_loaded_extensions();
-	//return in_array( "curl" , $modules );
-	return true;
+	return in_array( "json" , $modules );
 }
 ?>
