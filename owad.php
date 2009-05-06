@@ -59,13 +59,7 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 	wp_enqueue_script('jquery');
 	
 	if ( !file_exists(OWAD_CACHE_FILE) )
-	{
-		$template = '<?xml version="1.0" encoding="UTF-8"?>
-			<words>
-			</words>
-			';
-		file_put_contents( OWAD_CACHE_FILE , $template);	
-	}
+		file_put_contents( OWAD_CACHE_FILE , '<?xml version="1.0" encoding="UTF-8"?><words></words>');	
 	
 	if ( !function_exists('wp_register_sidebar_widget') )
 		return;
