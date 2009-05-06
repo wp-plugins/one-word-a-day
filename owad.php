@@ -60,8 +60,7 @@ function owad_init() {	// Check for the required WP functions, die silently for 
 	
 	if ( !file_exists(OWAD_CACHE_FILE) )
 	{
-		$template = '
-			<?xml version="1.0" encoding="UTF-8"?>
+		$template = '<?xml version="1.0" encoding="UTF-8"?>
 			<words>
 			</words>
 			';
