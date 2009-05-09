@@ -1,12 +1,12 @@
 <?php
 define('OWAD_CACHE_FILE', "cache/words.xml");
 
-include("functions.php");
+include("class.owad.php");
 
 // This is executed if an ajax request is sent.
 if( isset( $_GET["wordid"] ) )
 { 	
-	$set = owad_get_word_by_id( intval( $_GET["wordid"] ) );
+	$set = Owad::get_word_by_id( intval( $_GET["wordid"] ) );
 	
 	if( $set == NULL )
 	{
