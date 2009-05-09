@@ -31,9 +31,9 @@ define('OWAD_FOLDER', dirname(plugin_basename(__FILE__)));
 define('OWAD_URLPATH', get_option('siteurl').'/wp-content/plugins/' . OWAD_FOLDER.'/');
 define('OWAD_CACHE_FILE', "wp-content/plugins/" . OWAD_FOLDER . "/cache/words.xml");
 
-//require_once(dirname(__FILE__) . '/functions.php');
-require_once(dirname(__FILE__) . '/owad.class.php');
-require_once(dirname(__FILE__) . '/widget.class.php');
+
+require_once(dirname(__FILE__) . '/class.owad.php');
+require_once(dirname(__FILE__) . '/class.widget.php');
 
 if ( class_exists('Owad') )
 	$owad = new Owad();

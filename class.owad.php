@@ -26,6 +26,7 @@ class Owad
 			$widget = new Owad_Widget();
 			
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
+		add_action( 'wp_head', array( &$this, 'header'), 1);
 	
 	}
 	
@@ -268,7 +269,7 @@ class Owad
 			$word = $words->word[$i];
 			$attributes = $word->attributes();
 			if ( $id == $attributes[0] )
-				return $this->extract_set( $word, $attributes );
+				return Owad::extract_set( $word, $attributes );
 		}
 		
 		return NULL;
@@ -306,20 +307,18 @@ class Owad
 		
 		extract( $word );
 		
-		// Warning to my users: 
-		// Changing this heredoc could brick your site. Don't format the following code so
-		// don't add new lines or tabs!
-		$output = <<<OUTPUT
+		$version = str_replace( ".", "_", OWAD_VERSION );
+		$output = '
 			<div>
-			What does <strong><span id="owad_todays_word">$todays_word</span></strong> mean?
+			What does <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> mean?
 			
 			<table>
-			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://www.owad.de/check.php4?id=$wordid&choice=1" target="_blank"> $alternatives[0]</a> </span> </td></tr>
-			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://www.owad.de/check.php4?id=$wordid&choice=3" target="_blank"> $alternatives[1] </a> </span> </td></tr>
-			<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://www.owad.de/check.php4?id=$wordid&choice=5" target="_blank"> $alternatives[2] </a> </span> </td></tr>
+			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://owad.slopjong.de/check_'. $wordid .'_1_v'. $version .'.html" target="_blank">'. $alternatives[0] .'</a> </span> </td></tr>
+			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://owad.slopjong.de/check_'. $wordid .'_3_v'. $version .'.html" target="_blank">'. $alternatives[1] .'</a> </span> </td></tr>
+			<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://owad.slopjong.de/check_'. $wordid .'_5_v'. $version .'.html" target="_blank">'. $alternatives[2] .'</a> </span> </td></tr>
 			</table>
 			</div>
-OUTPUT;
+			';
 
 		return $output;
 	}
@@ -332,29 +331,13 @@ OUTPUT;
 		$counts = count( $sets );
 		if ( $counts > 1 )
 		{
-			$owad_url = OWAD_URLPATH;
-			$output .= <<<OUTPUT
-				<script type="text/javascript">
-				 function loadData()
-				 {
-					var dataToBeSent = $('#owad_wordid').serialize();
-					
-					$.getJSON("${owad_url}word2json.php", dataToBeSent, function(json){
-						$("#owad_todays_word")[0].innerHTML = json.todays_word;
+			$output .= '
 
-						$("#owad_alt1")[0].innerHTML = '<a href="http://www.owad.de/check.php4?id=' + json.wordid +'&choice=1" target="_blank">'+ json.alternatives[0] +'</a>';
-						$("#owad_alt2")[0].innerHTML = '<a href="http://www.owad.de/check.php4?id=' + json.wordid +'&choice=3" target="_blank">'+ json.alternatives[1] +'</a>';
-						$("#owad_alt3")[0].innerHTML = '<a href="http://www.owad.de/check.php4?id=' + json.wordid +'&choice=5" target="_blank">'+ json.alternatives[2] +'</a>';
-
-					});
-					
-				 }
-			   </script>
 			Older words:
 		
 			<form id="owad_wordid">
 			<select style="width:100%;" name="wordid" onchange="loadData();">
-OUTPUT;
+			';
 			
 			$words = array();
 			for ( $i = 0; $i<$counts; $i++ )
@@ -377,12 +360,42 @@ OUTPUT;
 		return $output;
 	}
 	
+	function header()
+	{
+		$this->javascript();
+	}
+	
+	function javascript()
+	{
+		$version = str_replace( ".", "_", OWAD_VERSION );
+		?>
+		<script type="text/javascript">
+		 function loadData()
+		 {
+			var dataToBeSent = $('#owad_wordid').serialize();
+			
+			$.getJSON("<?= constant('OWAD_URLPATH') ?>word2json.php", dataToBeSent, function(json){
+				$("#owad_todays_word")[0].innerHTML = json.todays_word;
+
+				$("#owad_alt1")[0].innerHTML = '<a href="http://owad.slopjong.de/check_' + json.wordid +'_1_v<?= $version ?>.html" target="_blank">'+ json.alternatives[0] +'</a>';
+				$("#owad_alt2")[0].innerHTML = '<a href="http://owad.slopjong.de/check_' + json.wordid +'_3_v<?= $version ?>.html" target="_blank">'+ json.alternatives[1] +'</a>';
+				$("#owad_alt3")[0].innerHTML = '<a href="http://owad.slopjong.de/check_' + json.wordid +'_5_v<?= $version ?>.html" target="_blank">'+ json.alternatives[2] +'</a>';
+
+			});
+			
+		 }
+	   </script>
+		<?php
+	}
+	
 	function no_support_text()
 	{
 		return 'If you can read this text this widget isn\'t supported by this blog\'s host!<br/> 
 				<br/>Please leave a comment <a href="http://slopjong.de/2009/03/20/one-word-a-day/" 
 				target="_blank">here</a> to help improve this widget.';
 	}
+	
+	
 	
 }
 
