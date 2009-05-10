@@ -26,17 +26,18 @@ class Owad
 			$widget = new Owad_Widget();
 			
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
-		add_action( 'wp_head', array( &$this, 'header'), 1);
-	
+		add_action( 'wp_head', array( &$this, 'header'), 1);	
 	}
 	
 	function shortcode_handler( $atts )
-	{
+	{		
 		if ( ! $this->supported_by_host() )
 			return $this->no_support_text();
 			
 		if ( isset( $atts["date"] ) )
 		{	
+			$hide_question = false;
+		
 			// the tags have to be stripped because the blog could get hacked throuch mail posting
 			// controlled by a hacker or whatever.
 			$date = strip_tags( $atts["date"] );
@@ -45,12 +46,16 @@ class Owad
 			{	
 				global $post;
 				$date = $post->post_date;
+				
+				
+				$fields = get_post_custom_values( 'owad_hide_question', $post->id );
+				$hide_question = $fields[0];
 			}
 			
 			if ( preg_match( "/[\d]{4,4}-[\d]{2,2}-[\d]{2,2}/", $date, $date ) )
 			{
 				$word = $this->get_word_by_date( $date[0] );	
-				return $this->print_word( $word );
+				return $this->print_word( $word, $hide_question );
 			}
 		}
 		else
@@ -261,7 +266,7 @@ class Owad
 		return in_array( "json" , $modules );
 	}
 	
-	function print_word( $word = NULL )
+	function print_word( $word = NULL, $hide_question = false )
 	{
 
 		if ( NULL == $word )
@@ -271,10 +276,12 @@ class Owad
 		
 		extract( $word );
 		
-		$output = '
-			<div>
-			What does <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> mean?
+		$output .= '<div>';
+		
+		if ( ! $hide_question )
+			$output .= 'What does <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> mean?';
 			
+		$output .= '
 			<table>
 			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_1'. $wordid .'.html" target="_blank">'. $alternatives[0] .'</a> </span> </td></tr>
 			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_3'. $wordid .'.html" target="_blank">'. $alternatives[1] .'</a> </span> </td></tr>
@@ -357,6 +364,27 @@ class Owad
 		return 'If you can read this text this widget isn\'t supported by this blog\'s host!<br/> 
 				<br/>Please leave a comment <a href="http://slopjong.de/2009/03/20/one-word-a-day/" 
 				target="_blank">here</a> to help improve this widget.';
+	}
+	
+	function post_todays_word()
+	{
+		$args = array(
+			"year" => "2009",
+			"monthnum" => "4",
+			"day" => "30"
+			);
+			
+		$posts = get_posts( $args );
+		if ($posts) 
+		{
+			foreach ($posts as $post) 
+			{
+				// Check the post title and the custom field(s)
+				//echo $post->post_title;
+				
+				// post today's word
+			}
+		}
 	}
 	
 }
