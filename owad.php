@@ -34,6 +34,7 @@ define('OWAD_CACHE_FILE', "wp-content/plugins/" . OWAD_FOLDER . "/cache/words.xm
 
 require_once(dirname(__FILE__) . '/class.owad.php');
 require_once(dirname(__FILE__) . '/class.widget.php');
+require_once(dirname(__FILE__) . '/settings.php');
 
 if ( class_exists('Owad') )
 	$owad = new Owad();

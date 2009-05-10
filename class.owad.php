@@ -395,7 +395,12 @@ class Owad
 				target="_blank">here</a> to help improve this widget.';
 	}
 	
-	
+	/*
+	function get_reference()
+	{
+		return $this;
+	}
+	*/
 	
 }
 
