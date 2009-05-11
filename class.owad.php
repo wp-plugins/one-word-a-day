@@ -370,6 +370,12 @@ class Owad
 	{
 		if ( ! is_admin() )
 		{
+			global $owad_default_options;
+			$options = get_option('owad');
+			$options = wp_parse_args( $options, $owad_default_options );
+			if ( empty( $options["owad_post_category"] ))
+				$options["owad_post_category"] = $owad_default_options["owad_post_category"];
+			
 			$word = $this->get_data();
 		
 			if ( $this->is_todays_word_posted( $word ) )
@@ -381,8 +387,8 @@ class Owad
 				'post_content'		=> '[owad date="post_date"]',
 				'post_status'		=> 'publish',
 				'post_type' 		=> 'post',
-				'post_author'		=> 1,
-				'post_category'		=>  array (1)
+				'post_author'		=> $options['owad_post_author'],
+				'post_category'		=>  array ( $options['owad_post_category'] )
 				));
 			
 			if( $post_id )
