@@ -27,7 +27,9 @@ class Owad
 			
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 		add_action( 'wp_head', array( &$this, 'header'), 1);
-		add_action('plugins_loaded', array( &$this, 'post_todays_word') );
+		
+		// The action 'plugins_loaded' can't be used because publishing a post causes a warning
+		add_action('init', array( &$this, 'post_todays_word') );
 	}
 	
 	function shortcode_handler( $atts )
@@ -381,6 +383,7 @@ class Owad
 			if ( $this->is_todays_word_posted( $word ) )
 				return;
 			
+			
 			// post today's word
 			$post_id = wp_insert_post(array(
 				'post_title'		=> 'What does "'. $word["todays_word"] .'" mean?',
@@ -396,6 +399,7 @@ class Owad
 				add_post_meta( $post_id , '_owad', "One Word A Day");
 				add_post_meta( $post_id , '_owad_hide_question', "true");
 			}
+
 		}
 	}
 	
