@@ -375,14 +375,8 @@ class Owad
 			if ( $this->is_todays_word_posted( $word ) )
 				return;
 			
-
 			// post today's word
-			//*
 			$post_id = wp_insert_post(array(
-				'post_date'			=> $word["date"] .' 00:00:00',
-				'post_date_gmt'		=> $word["date"] .' 00:00:00',
-				'post_modified'		=> $word["date"] .' 00:00:00',
-				'post_modified_gmt'	=> $word["date"] .' 00:00:00',
 				'post_title'		=> 'What does "'. $word["todays_word"] .'" mean?',
 				'post_content'		=> '[owad date="post_date"]',
 				'post_status'		=> 'publish',
@@ -390,7 +384,6 @@ class Owad
 				'post_author'		=> 1,
 				'post_category'		=>  array (1)
 				));
-			//*/
 			
 			if( $post_id )
 			{
@@ -403,13 +396,28 @@ class Owad
 	function is_todays_word_posted( $word )
 	{
 		$date = split( "-", $word["date"] );
+		
+		// Depending on the timezone the day after and before have to be checked too 
 		$args = array(
 			"year" => $date[0],
 			"monthnum" => $date[1],
-			"day" => $date[2]
-			);
+			"day" => $date[2] - 1 );
 			
 		$posts = get_posts( $args );
+
+		$args = array(
+			"year" => $date[0],
+			"monthnum" => $date[1],
+			"day" => $date[2] );
+			
+		$posts = array_merge( $posts, get_posts( $args ) );
+		
+		$args = array(
+			"year" => $date[0],
+			"monthnum" => $date[1],
+			"day" => $date[2] +1 );
+			
+		$posts = array_merge( $posts, get_posts( $args ) );
 		
 		foreach ( $posts as $post ) 
 		{	
