@@ -26,7 +26,8 @@ class Owad
 			$widget = new Owad_Widget();
 			
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
-		add_action( 'wp_head', array( &$this, 'header'), 1);	
+		add_action( 'wp_head', array( &$this, 'header'), 1);
+		add_action('plugins_loaded', array( &$this, 'post_todays_word') );
 	}
 	
 	function shortcode_handler( $atts )
@@ -47,8 +48,7 @@ class Owad
 				global $post;
 				$date = $post->post_date;
 				
-				
-				$fields = get_post_custom_values( 'owad_hide_question', $post->id );
+				$fields = get_post_custom_values( '_owad_hide_question', $post->id );
 				$hide_question = $fields[0];
 			}
 			
@@ -368,24 +368,66 @@ class Owad
 	
 	function post_todays_word()
 	{
-		$args = array(
-			"year" => "2009",
-			"monthnum" => "4",
-			"day" => "30"
-			);
-			
-		$posts = get_posts( $args );
-		if ($posts) 
+		if ( ! is_admin() )
 		{
-			foreach ($posts as $post) 
+			$word = $this->get_data();
+		
+			if ( $this->is_todays_word_posted( $word ) )
+				return;
+			
+
+			// post today's word
+			//*
+			$post_id = wp_insert_post(array(
+				'post_date'			=> $word["date"] .' 00:00:00',
+				'post_date_gmt'		=> $word["date"] .' 00:00:00',
+				'post_modified'		=> $word["date"] .' 00:00:00',
+				'post_modified_gmt'	=> $word["date"] .' 00:00:00',
+				'post_title'		=> 'What does "'. $word["todays_word"] .'" mean?',
+				'post_content'		=> '[owad date="post_date"]',
+				'post_status'		=> 'publish',
+				'post_type' 		=> 'post',
+				'post_author'		=> 1,
+				'post_category'		=>  array (1)
+				));
+			//*/
+			
+			if( $post_id )
 			{
-				// Check the post title and the custom field(s)
-				//echo $post->post_title;
-				
-				// post today's word
+				add_post_meta( $post_id , '_owad', "One Word A Day");
+				add_post_meta( $post_id , '_owad_hide_question', "true");
 			}
 		}
 	}
+	
+	function is_todays_word_posted( $word )
+	{
+		$date = split( "-", $word["date"] );
+		$args = array(
+			"year" => $date[0],
+			"monthnum" => $date[1],
+			"day" => $date[2]
+			);
+			
+		$posts = get_posts( $args );
+		
+		foreach ( $posts as $post ) 
+		{	
+		 	// check the custom field 'owad'
+			$keys = get_post_custom_keys( $post->ID );
+			
+			// in_array causes a warning
+			if ( ! is_array( $keys ) || ! in_array( "_owad", $keys ) )
+				continue;
+				
+			// Check the post title
+			if ( preg_match( '/'. $word['todays_word'] .'/', $post->post_title ))	
+				return true;
+		}
+
+		return false;
+		
+	} // end post_todays_word
 	
 }
 
