@@ -49,54 +49,95 @@ class Owad_Widget
 			echo $after_widget;
 		}
 		
-	} // end widget
+	}
 	
-	function backend(  )
-	{	
+	function backend()
+	{
 		global $owad;
 		
 		if ( ! $owad->supported_by_host() )
 			echo $owad->no_support_text();
 		else
-		{			
-			global $owad_default_options;
-			
+		{	
+			global $owad_default_options;		
 			$options = get_option('owad');
 			$options = wp_parse_args( $options, $owad_default_options );		
 			
-				
-			if ( isset( $_POST["owad_submit"] ) )
+			
+			/******************************************************************************/
+			
+			if ( isset( $_POST["save-widgets"] ))
 			{
-				if ( $_POST["owad_daily_post"] )
-					$options['owad_daily_post'] = true;
+				$set_to_default = true;
+				foreach( $_POST["owad_post_category"]  as $el )
+				{
+					if ( !empty($el))
+						$set_to_default = false;
+				}
+				
+				if ( $set_to_default )
+					$options["owad_post_category"] = $owad_default_options["owad_post_category"];
 				else
-					$options['owad_daily_post'] = false;
-					
-				update_option('owad', $options);
+					$options["owad_post_category"] = $_POST["owad_post_category"];
+				
+						
+				$options["owad_daily_post"] = $_POST["owad_daily_post"];
+				$options["owad_post_author"] = $_POST["owad_post_author"];
+						
+				update_option( "owad", $options );
 			}
 			
-			echo '<input type="hidden" id="owad_submit" name="owad_submit" value="1" />';				
+			/******************************************************************************/			
+			
 			echo '
-				<p>
-				<input type="checkbox" name="owad_daily_post" value="true"';
-			
-			if ( $options['owad_daily_post'] )
-				echo "checked";
+					<script type="text/javascript">
+						    				
+						$(document).ready(function(){
+					    	$("input[name=owad_daily_post]").change(function () { 
+					    		$("#owad_post_settings").toggle("slow");
+					    		});	
+					    	});
+					</script>
+					
+					<div style="float:left;">Create a daily post:</div>
+					<div style="float:right; width:130px;">
+					<input type="radio" name="owad_daily_post" value="1"'. (($options['owad_daily_post']) ? 'checked="checked"' : '') .'/> yes <br/>
+					<input type="radio" name="owad_daily_post" value="0"'. (($options['owad_daily_post']) ? '' : ' checked="checked"') .'/> no
+					</div><br style="clear:both;"/>
+				';
 				
-			echo '> Create a daily post
+			/******************************************************************************/
 			
-				</p>
-				
-				<!--
-				Create a daily post <br/>
-				<input type="radio" name="owad_daily_post" value="yes" /> yes 
-				<input type="radio" name="owad_daily_post" value="no" /> no
-				-->
-			';
-		}
+			// The post settings block
+			echo '<div id="owad_post_settings" style="';
+			if( ! $options['owad_daily_post'] )	
+				echo 'display:none;';
+			echo '">';
 			
-	} // end widget
+			// The categories
+			echo '<hr/><p> In which categories should be posted? <br/><div style="margin-left:20px;" >';
+			
+			$cats = get_categories( array( "hide_empty" => false ) );
+			foreach( $cats as $cat)			
+				echo '<input name="owad_post_category[]" type="checkbox"
+				'. (( in_array( $cat->cat_ID, $options["owad_post_category"] )) ? 'checked="checked"' : "" ) 
+				.' value="'. $cat->cat_ID .'"/>&nbsp;' . $cat->cat_name ."<br/>";
+			echo "</div></p>";
+			
+			// Which user should be used?
+			echo '<hr/><p> Who should be the post author?<br/><div style="margin-left:20px;">';
+			echo '<select id="owad_post_author" name="owad_post_author">';
+			$users = get_users_of_blog();
+			foreach( $users as $user)			
+				echo '<option value="'. $user->user_id .'"'. (( $user->user_id == $options['owad_post_author']) ? 'selected="selected"' :"" )
+				.'>' . $user->user_login .'</option>';
+			echo '</select>';
+			echo "</div></p>";
+			
+			echo "<hr/></div>";
 
+		}
+	}
 }
 
 ?>
