@@ -391,7 +391,7 @@ class Owad
 				'post_status'		=> 'publish',
 				'post_type' 		=> 'post',
 				'post_author'		=> $options['owad_post_author'],
-				'post_category'		=>  array ( $options['owad_post_category'] )
+				'post_category'		=> $options['owad_post_category']
 				));
 			
 			if( $post_id )
