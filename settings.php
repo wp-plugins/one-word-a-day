@@ -2,9 +2,9 @@
 
 // These are the default values of the option 'collroll' which is stored in the database
 $owad_default_options = array(
-		"owad_daily_post" => false,
+		"owad_daily_post"    => 0, // 0 = false, 1 = true
 		"owad_post_category" => array( 1 ),
-		"owad_post_author" => 1
+		"owad_post_author"   => 1
 		);
 		
 
