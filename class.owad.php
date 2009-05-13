@@ -18,9 +18,8 @@ class Owad
 	*/		
 	function __construct()
 	{
-		wp_deregister_script('jquery');
-		wp_register_script('jquery', ("http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"), false, '1.3.2');
 		wp_enqueue_script('jquery');
+		//wp_enqueue_script('thickbox');
 		
 		if ( class_exists('Owad_Widget') )
 			$widget = new Owad_Widget();
@@ -285,9 +284,9 @@ class Owad
 			
 		$output .= '
 			<table>
-			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_1'. $wordid .'.html" target="_blank">'. $alternatives[0] .'</a> </span> </td></tr>
-			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_3'. $wordid .'.html" target="_blank">'. $alternatives[1] .'</a> </span> </td></tr>
-			<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_5'. $wordid .'.html" target="_blank">'. $alternatives[2] .'</a> </span> </td></tr>
+			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_1'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[0] .'</a> </span> </td></tr>
+			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_3'. $wordid .'.html">'. $alternatives[1] .'</a> </span> </td></tr>
+			<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_5'. $wordid .'.html">'. $alternatives[2] .'</a> </span> </td></tr>
 			</table>
 			</div>
 			';
@@ -343,16 +342,16 @@ class Owad
 		<script type="text/javascript">
 		 function loadData()
 		 {
-			var dataToBeSent = $('#owad_wordid').serialize();
+			var dataToBeSent = jQuery('#owad_wordid').serialize();
 			
-			$.getJSON("<?= constant('OWAD_URLPATH') ?>word2json.php", dataToBeSent, function(json){
+			jQuery.getJSON("<?= constant('OWAD_URLPATH') ?>word2json.php", dataToBeSent, function(json){
 				var todays_word = json.todays_word;
 			
-				$("#owad_todays_word")[0].innerHTML = json.todays_word;
+				jQuery("#owad_todays_word")[0].innerHTML = json.todays_word;
 
-				$("#owad_alt1")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html" target="_blank">'+ json.alternatives[0] +'</a>';
-				$("#owad_alt2")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html" target="_blank">'+ json.alternatives[1] +'</a>';
-				$("#owad_alt3")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html" target="_blank">'+ json.alternatives[2] +'</a>';
+				jQuery("#owad_alt1")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html" target="_blank">'+ json.alternatives[0] +'</a>';
+				jQuery("#owad_alt2")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html" target="_blank">'+ json.alternatives[1] +'</a>';
+				jQuery("#owad_alt3")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html" target="_blank">'+ json.alternatives[2] +'</a>';
 
 			});
 			
