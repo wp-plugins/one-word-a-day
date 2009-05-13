@@ -92,9 +92,9 @@ class Owad_Widget
 			echo '
 					<script type="text/javascript">
 						    				
-						$(document).ready(function(){
-					    	$("input[name=owad_daily_post]").change(function () { 
-					    		$("#owad_post_settings").toggle("slow");
+						jQuery(document).ready(function(){
+					    	jQuery("input[name=owad_daily_post]").change(function () { 
+					    		jQuery("#owad_post_settings").toggle("slow");
 					    		});	
 					    	});
 					</script>
