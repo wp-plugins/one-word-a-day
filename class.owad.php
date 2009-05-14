@@ -17,18 +17,27 @@ class Owad
 	* PHP 5 Constructor
 	*/		
 	function __construct()
-	{
-		wp_enqueue_script('jquery');
-		//wp_enqueue_script('thickbox');
-		
+	{		
 		if ( class_exists('Owad_Widget') )
 			$widget = new Owad_Widget();
-			
-		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
-		add_action( 'wp_head', array( &$this, 'header'), 1);
+
+		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
+		add_action( 'wp_head', array( &$this, 'header' ) );
 		
+		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
+
 		// The action 'plugins_loaded' can't be used because publishing a post causes a warning
 		add_action('init', array( &$this, 'post_todays_word') );
+	}
+	
+	function enqueue_resources()
+	{
+		// scripts
+		wp_enqueue_script('jquery');
+		wp_enqueue_script('thickbox');
+		
+		// styles
+		wp_enqueue_style( 'thickbox' );
 	}
 	
 	function shortcode_handler( $atts )
@@ -283,10 +292,11 @@ class Owad
 			$output .= 'What does <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> mean?';
 			
 		$output .= '
+			<span id="owad_test"></span>
 			<table>
-			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_1'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[0] .'</a> </span> </td></tr>
-			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_3'. $wordid .'.html">'. $alternatives[1] .'</a> </span> </td></tr>
-			<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://owad.slopjong.de/'. str_replace( " ", "_", $todays_word ) .'_5'. $wordid .'.html">'. $alternatives[2] .'</a> </span> </td></tr>
+			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_1'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[0] .'</a> </span> </td></tr>
+			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_3'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[1] .'</a> </span> </td></tr>
+			<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_5'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[2] .'</a> </span> </td></tr>
 			</table>
 			</div>
 			';
@@ -339,7 +349,12 @@ class Owad
 	function javascript()
 	{
 		?>
+		
 		<script type="text/javascript">
+
+		var tb_pathToImage = "<?= get_option('siteurl'); ?>/<?= WPINC; ?>/js/thickbox/loadingAnimation.gif";
+		var tb_closeImage = "<?= get_option('siteurl'); ?>/<?= WPINC; ?>/js/thickbox/tb-close.png"
+
 		 function loadData()
 		 {
 			var dataToBeSent = jQuery('#owad_wordid').serialize();
@@ -348,15 +363,16 @@ class Owad
 				var todays_word = json.todays_word;
 			
 				jQuery("#owad_todays_word")[0].innerHTML = json.todays_word;
-
-				jQuery("#owad_alt1")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html" target="_blank">'+ json.alternatives[0] +'</a>';
-				jQuery("#owad_alt2")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html" target="_blank">'+ json.alternatives[1] +'</a>';
-				jQuery("#owad_alt3")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html" target="_blank">'+ json.alternatives[2] +'</a>';
+				//jQuery("#owad_test")[0].innerHTML = '<a href="http://owad.slopjong.de/test_12286.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">Test</a>';
+				jQuery("#owad_alt1")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[0] +'</a>';
+				jQuery("#owad_alt2")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[1] +'</a>';
+				jQuery("#owad_alt3")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[2] +'</a>';
 
 			});
 			
 		 }
-	   </script>
+	   	</script>
+		
 		<?php
 	}
 	
