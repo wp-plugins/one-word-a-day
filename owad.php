@@ -25,19 +25,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 */
 
+/* TODO
+- Trackbacks einfügen
+- jQuery-Thickbox Problem lösen
+- den Custom Value 'owad_hide_question' berücksichtigen und nicht nur die versteckte Variante
+*/
+
 define('OWAD_VERSION',"0.2.1");
 
-define('OWAD_FOLDER', dirname(plugin_basename(__FILE__)));
-define('OWAD_URLPATH', get_option('siteurl').'/wp-content/plugins/' . OWAD_FOLDER.'/');
-define('OWAD_CACHE_FILE', WP_PLUGIN_DIR .'/'. OWAD_FOLDER . "/cache/words.xml");
-
-require_once(dirname(__FILE__) . '/class.owad.php');
-require_once(dirname(__FILE__) . '/class.widget.php');
-require_once(dirname(__FILE__) . '/settings.php');
+require_once(dirname(__FILE__) . '/settings/constants.php');
+require_once(dirname(__FILE__) . '/settings/settings.php');
+require_once(dirname(__FILE__) . '/classes/class.owad.php');
+require_once(dirname(__FILE__) . '/classes/class.widget.php');
 
 // For debugging
 //require_once(dirname(__FILE__) . '/krumo/class.krumo.php' );
 
+// Let's go
 if ( class_exists('Owad') )
 	$owad = new Owad();
 

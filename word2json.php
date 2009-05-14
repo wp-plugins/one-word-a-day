@@ -1,7 +1,7 @@
 <?php
 define('OWAD_CACHE_FILE', "cache/words.xml");
 
-include("class.owad.php");
+include("classes/class.owad.php");
 
 // This is executed if an ajax request is sent.
 if( isset( $_GET["wordid"] ) )

@@ -22,24 +22,23 @@ class Owad
 			$widget = new Owad_Widget();
 
 		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
-		add_action( 'wp_head', array( &$this, 'header' ) );
-		
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 
 		// The action 'plugins_loaded' can't be used because publishing a post causes a warning
-		add_action('init', array( &$this, 'post_todays_word') );
+		//add_action('init', array( &$this, 'post_todays_word') );
 	}
 	
+	// Load javascript scripts and styles
 	function enqueue_resources()
 	{
 		// scripts
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('thickbox');
+		wp_enqueue_script( 'owad', '/'. PLUGINDIR .'/'. OWAD_FOLDER .'/js/js.php', array('jquery','thickbox') );
 		
 		// styles
 		wp_enqueue_style( 'thickbox' );
 	}
 	
+	// Does what the function name already says
 	function shortcode_handler( $atts )
 	{		
 		if ( ! $this->supported_by_host() )
@@ -78,6 +77,7 @@ class Owad
 		
 	}
 
+	// Load either today's word from the cache or from the server and cache it if not done yet.
 	function get_data()
 	{
 		if ( !OWAD_USE_CACHE )
@@ -115,6 +115,7 @@ class Owad
 	
 	}
 	
+	// Load the date when the last word was published
 	function last_word_date()
 	{
 		$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php");
@@ -140,12 +141,14 @@ class Owad
 		return $date;	
 	}
 	
+	// Checks if the passed date argument is a holiday
 	function is_holiday( $date )
 	{
 		global $owad_holidays;		
 		return in_array( $date, $owad_holidays );
 	}
 	
+	// Convert the passed xml word object into an associative array
 	function extract_set( $word )
 	{
 		$attributes = $word->attributes();
@@ -165,6 +168,10 @@ class Owad
 	
 		return $set;
 	}
+	
+	
+	// TODO: Den Rest 'morgen' dokumentieren.
+	
 	
 	function save_set( $set, $words )
 	{
@@ -339,41 +346,6 @@ class Owad
 		}
 		
 		return $output;
-	}
-	
-	function header()
-	{
-		$this->javascript();
-	}
-	
-	function javascript()
-	{
-		?>
-		
-		<script type="text/javascript">
-
-		var tb_pathToImage = "<?= get_option('siteurl'); ?>/<?= WPINC; ?>/js/thickbox/loadingAnimation.gif";
-		var tb_closeImage = "<?= get_option('siteurl'); ?>/<?= WPINC; ?>/js/thickbox/tb-close.png"
-
-		 function loadData()
-		 {
-			var dataToBeSent = jQuery('#owad_wordid').serialize();
-			
-			jQuery.getJSON("<?= constant('OWAD_URLPATH') ?>word2json.php", dataToBeSent, function(json){
-				var todays_word = json.todays_word;
-			
-				jQuery("#owad_todays_word")[0].innerHTML = json.todays_word;
-				//jQuery("#owad_test")[0].innerHTML = '<a href="http://owad.slopjong.de/test_12286.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">Test</a>';
-				jQuery("#owad_alt1")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[0] +'</a>';
-				jQuery("#owad_alt2")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[1] +'</a>';
-				jQuery("#owad_alt3")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[2] +'</a>';
-
-			});
-			
-		 }
-	   	</script>
-		
-		<?php
 	}
 	
 	function no_support_text()
