@@ -29,12 +29,14 @@ define('OWAD_VERSION',"0.2.1");
 
 define('OWAD_FOLDER', dirname(plugin_basename(__FILE__)));
 define('OWAD_URLPATH', get_option('siteurl').'/wp-content/plugins/' . OWAD_FOLDER.'/');
-define('OWAD_CACHE_FILE', "wp-content/plugins/" . OWAD_FOLDER . "/cache/words.xml");
-
+define('OWAD_CACHE_FILE', WP_PLUGIN_DIR .'/'. OWAD_FOLDER . "/cache/words.xml");
 
 require_once(dirname(__FILE__) . '/class.owad.php');
 require_once(dirname(__FILE__) . '/class.widget.php');
 require_once(dirname(__FILE__) . '/settings.php');
+
+// For debugging
+//require_once(dirname(__FILE__) . '/krumo/class.krumo.php' );
 
 if ( class_exists('Owad') )
 	$owad = new Owad();
