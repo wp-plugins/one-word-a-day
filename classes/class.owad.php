@@ -373,8 +373,7 @@ class Owad
 		
 			if ( $this->is_todays_word_posted( $word ) )
 				return;
-			
-			
+				
 			// post today's word
 			$post_id = wp_insert_post(array(
 				'post_title'		=> 'What does "'. $word["todays_word"] .'" mean?',
@@ -389,9 +388,28 @@ class Owad
 			{
 				add_post_meta( $post_id , '_owad', "One Word A Day");
 				add_post_meta( $post_id , '_owad_hide_question', "true");
+				
+				$this->post_comment( $post_id );
 			}
-
 		}
+	}
+	
+	function post_comment( $post_id )
+	{
+		// Add a pingback
+		// I'd be glad if you wouldn't remove this. Consider that yo got this plugin for
+		// free. Give other people the chance to get the plugin as well ;-)
+		$comment_data = array(
+			'comment_author' => "Learning English with the WordPress plugin <em>One Word A Day</em> | Romain Schmitz <em></em> ",
+			'comment_author_url' => 'http://slopjong.de/2009/03/20/one-word-a-day/',
+			'comment_author_email' => '',
+			'comment_content' => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
+			'comment_type' => 'pingback',
+			'comment_agent' => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
+			'comment_post_ID' => $post_id 
+			);
+			
+		wp_insert_comment( $comment_data );
 	}
 	
 	function is_todays_word_posted( $word )
