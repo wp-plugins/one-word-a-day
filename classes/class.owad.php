@@ -24,8 +24,9 @@ class Owad
 		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 
-		// The action 'plugins_loaded' can't be used because publishing a post causes a warning
-		//add_action('init', array( &$this, 'post_todays_word') );
+		global $wp_did_header;
+		if ( isset($wp_did_header) )
+			add_action('init', array( &$this, 'post_todays_word') );
 	}
 	
 	// Load javascript scripts and styles
