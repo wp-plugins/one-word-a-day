@@ -59,6 +59,9 @@ class Owad
 				$date = $post->post_date;
 				
 				$fields = get_post_custom_values( '_owad_hide_question', $post->id );
+				if( count($fields) == 0 )
+					$fields = get_post_custom_values( 'owad_hide_question', $post->id );
+
 				$hide_question = $fields[0];
 			}
 			
