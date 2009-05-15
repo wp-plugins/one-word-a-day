@@ -22,9 +22,15 @@ echo <<<JAVASCRIPT
 				var todays_word = json.todays_word;
 			
 				jQuery("#owad_todays_word")[0].innerHTML = json.todays_word;
-				jQuery("#owad_alt1")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[0] +'</a>';
-				jQuery("#owad_alt2")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[1] +'</a>';
-				jQuery("#owad_alt3")[0].innerHTML = '<a href="http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'+ json.alternatives[2] +'</a>';
+								
+				jQuery("#owad_alt1")[0].innerHTML = json.alternatives[0];
+				jQuery("#owad_alt1")[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800';
+								
+				jQuery("#owad_alt2")[0].innerHTML = json.alternatives[1];
+				jQuery("#owad_alt2")[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800';
+				
+				jQuery("#owad_alt3")[0].innerHTML = json.alternatives[2];
+				jQuery("#owad_alt3")[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=600&width=800';
 
 			});
 			

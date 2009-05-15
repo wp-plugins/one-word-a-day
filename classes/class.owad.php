@@ -300,11 +300,11 @@ class Owad
 			$output .= 'What does <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> mean?';
 			
 		$output .= '
-			<span id="owad_test"></span>
+
 			<table>
-			<tr><td valign="top">a)</td><td> <span id="owad_alt1"> <a href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_1'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[0] .'</a> </span> </td></tr>
-			<tr><td valign="top">b)</td><td> <span id="owad_alt2"> <a href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_3'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[1] .'</a> </span> </td></tr>
-			<tr><td valign="top">c)</td><td> <span id="owad_alt3"> <a href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_5'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[2] .'</a> </span> </td></tr>
+			<tr><td valign="top">a)</td><td> <a id="owad_alt1" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_1'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[0] .'</a> </td></tr>
+			<tr><td valign="top">b)</td><td> <a id="owad_alt2" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_3'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[1] .'</a> </td></tr>
+			<tr><td valign="top">c)</td><td> <a id="owad_alt3" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_5'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=600&width=800" class="thickbox">'. $alternatives[2] .'</a> </td></tr>
 			</table>
 			</div>
 			';
