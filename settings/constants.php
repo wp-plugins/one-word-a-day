@@ -1,5 +1,6 @@
 <?php
 
+// Load the wp funcions if this file isn't included during the plugin loading process
 if ( ! isset($wp_did_header) )
 {
 	// get the wp installation path
