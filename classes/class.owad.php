@@ -24,9 +24,7 @@ class Owad
 		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 
-		global $wp_did_header;
-		if ( isset($wp_did_header) )
-			add_action('init', array( &$this, 'post_todays_word') );
+		add_action('init', array( &$this, 'post_todays_word') );
 	}
 	
 	// Load javascript scripts and styles
@@ -376,12 +374,12 @@ class Owad
 				
 			// post today's word
 			$post_id = wp_insert_post(array(
-				'post_title'		=> 'What does "'. $word["todays_word"] .'" mean?',
-				'post_content'		=> '[owad date="post_date"]',
-				'post_status'		=> 'publish',
-				'post_type' 		=> 'post',
-				'post_author'		=> $options['owad_post_author'],
-				'post_category'		=> $options['owad_post_category']
+				'post_title'     => 'What does "'. $word["todays_word"] .'" mean?',
+				'post_content'   => '[owad date="post_date"]',
+				'post_status'    => 'publish',
+				'post_type'      => 'post',
+				'post_author'    => $options['owad_post_author'],
+				'post_category'  => $options['owad_post_category']
 				));
 			
 			if( $post_id )
@@ -400,13 +398,13 @@ class Owad
 		// I'd be glad if you wouldn't remove this. Consider that yo got this plugin for
 		// free. Give other people the chance to get the plugin as well ;-)
 		$comment_data = array(
-			'comment_author' => "Learning English with the WordPress plugin <em>One Word A Day</em> | Romain Schmitz <em></em> ",
-			'comment_author_url' => 'http://slopjong.de/2009/03/20/one-word-a-day/',
-			'comment_author_email' => '',
-			'comment_content' => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
-			'comment_type' => 'pingback',
-			'comment_agent' => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
-			'comment_post_ID' => $post_id 
+			'comment_author'        => "Learning English with the WordPress plugin <em>One Word A Day</em> | Romain Schmitz <em></em> ",
+			'comment_author_url'    => 'http://slopjong.de/2009/03/20/one-word-a-day/',
+			'comment_author_email'  => '',
+			'comment_content'       => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
+			'comment_type'          => 'pingback',
+			'comment_agent'         => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
+			'comment_post_ID'       => $post_id 
 			);
 			
 		wp_insert_comment( $comment_data );

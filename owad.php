@@ -25,10 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 */
 
-/* TODO
-- Trackbacks einfügen
-*/
-
 define('OWAD_VERSION',"0.2.1");
 
 require_once(dirname(__FILE__) . '/settings/constants.php');
@@ -40,7 +36,7 @@ require_once(dirname(__FILE__) . '/classes/class.widget.php');
 //require_once(dirname(__FILE__) . '/krumo/class.krumo.php' );
 
 // Let's go
-if ( class_exists('Owad') )
+if ( class_exists('Owad') && isset($wp_did_header) && !isset($owad) )
 	$owad = new Owad();
 
 ?>
