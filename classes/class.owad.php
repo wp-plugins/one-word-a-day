@@ -4,7 +4,6 @@ define( "OWAD_USE_CACHE", true );
 
 class Owad
 {
-
 	/**
 	* PHP 4 Compatible Constructor
 	*/
@@ -19,12 +18,13 @@ class Owad
 	function __construct()
 	{		
 		if ( class_exists('Owad_Widget') )
-			$widget = new Owad_Widget();
+			new Owad_Widget();
 
-		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 
+		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 		add_action('init', array( &$this, 'post_todays_word') );
+			
 	}
 	
 	// Load javascript scripts and styles
@@ -369,7 +369,7 @@ class Owad
 			
 			$word = $this->get_data();
 		
-			if ( $this->is_todays_word_posted( $word ) )
+			if ( $this->is_todays_word_posted( $word ) || $this->is_holiday( $word["date"] ) )
 				return;
 				
 			// post today's word

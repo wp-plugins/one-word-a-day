@@ -35,8 +35,10 @@ require_once(dirname(__FILE__) . '/classes/class.widget.php');
 // For debugging
 //require_once(dirname(__FILE__) . '/krumo/class.krumo.php' );
 
+
 // Let's go
-if ( class_exists('Owad') && isset($wp_did_header) && !isset($owad) )
+if ( class_exists('Owad') && !isset($owad) && isset($wp_did_header) )
 	$owad = new Owad();
+
 
 ?>

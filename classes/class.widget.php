@@ -24,7 +24,6 @@ class Owad_Widget
 		wp_register_widget_control('owad', 'One Word A Day', array( &$this, 'backend') );
 	}
 	
-	
 	function frontend( $args )
 	{		
 		// there is an issue. this function is executed in the backend as well
@@ -115,7 +114,8 @@ class Owad_Widget
 			echo '">';
 			
 			// The categories
-			echo '<hr/><p> In which categories should be posted? <br/><div style="margin-left:20px;" >';
+			echo '<hr style="border: 0px; /* Für Firefox und Opera */ border-top: solid 1px #bbbbbb; border-bottom: transparent;" />
+			<p> In which categories should be posted? <br/><div style="margin-left:20px;" >';
 			
 			$cats = get_categories( array( "hide_empty" => false ) );
 			foreach( $cats as $cat)			
@@ -125,7 +125,8 @@ class Owad_Widget
 			echo "</div></p>";
 			
 			// Which user should be used?
-			echo '<hr/><p> Who should be the post author?<br/><div style="margin-left:20px;">';
+			echo '<hr style="border: 0px; /* Für Firefox und Opera */ border-top: solid 1px #bbbbbb; border-bottom: transparent;"/>
+			<p> Who should be the post author?<br/><div style="margin-left:20px;">';
 			echo '<select id="owad_post_author" name="owad_post_author">';
 			$users = get_users_of_blog();
 			foreach( $users as $user)			
