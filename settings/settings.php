@@ -2,9 +2,10 @@
 
 // These are the default values of the option 'owad' which is stored in the database
 $owad_default_options = array(
-		"owad_daily_post"    => 0, // 0 = false, 1 = true
-		"owad_post_category" => array( 1 ),
-		"owad_post_author"   => 1
+		"owad_daily_post"     => 0, // 0 = false, 1 = true
+		"owad_post_category"  => array( 1 ),
+		"owad_post_author"    => 1,
+		"owad_last_word_posted" => 0 // The last word that was posted. 0 means no word posted yet.
 		);
 		
 

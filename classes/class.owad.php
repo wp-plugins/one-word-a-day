@@ -43,29 +43,29 @@ class Owad
 	
 	// Does what the function name already says
 	function shortcode_handler( $atts )
-	{		
+	{
+		global $post;
+		
 		if ( ! $this->supported_by_host() )
 			return $this->no_support_text();
 			
 		if ( isset( $atts["date"] ) )
-		{	
-			$hide_question = false;
-		
+		{		
 			// the tags have to be stripped because the blog could get hacked throuch mail posting
 			// controlled by a hacker or whatever.
 			$date = strip_tags( $atts["date"] );
 			
 			if ( $date == "post_date" )
-			{	
-				global $post;
 				$date = $post->post_date;
-				
-				$fields = get_post_custom_values( '_owad_hide_question', $post->id );
-				if( count($fields) == 0 )
-					$fields = get_post_custom_values( 'owad_hide_question', $post->id );
+			
+			$fields = get_post_custom_values( '_owad_hide_question', $post->id );
+			if( count($fields) == 0 )
+				$fields = get_post_custom_values( 'owad_hide_question', $post->id );
 
+			if( count($fields) != 0 )
 				$hide_question = $fields[0];
-			}
+			else
+				$hide_question = false;
 			
 			if ( preg_match( "/[\d]{4,4}-[\d]{2,2}-[\d]{2,2}/", $date, $date ) )
 			{
@@ -80,6 +80,11 @@ class Owad
 			
 			return $output;
 		}
+		
+		
+		// TODO: add a trackback if not yet there
+		// Check if it's there
+		// $this->post_comment( $post_id );
 		
 	}
 
@@ -363,7 +368,6 @@ class Owad
 	
 	function post_todays_word()
 	{
-		//static $processing_new_post;
 		
 		if ( ! is_admin() )
 		{
@@ -375,19 +379,17 @@ class Owad
 			
 			$word = $this->get_data();
 		
-			if ( $this->is_todays_word_posted( $word ) || $this->is_holiday( $word["date"] ) )
+			if ( $word["wordid"] <= $options["owad_last_word_posted"] )
 				return;
+				
+			$options["wordid"] = $word["wordid"];
+			update_option('owad', $options );
 			
-			/*
-			if ( !$processing_new_post )
-			{
-				$processing_new_post = true;
-			//*/	
 			// post today's word
 			$post_id = wp_insert_post(array(
 				'post_title'     => 'What does "'. $word["todays_word"] .'" mean?',
-				'post_content'   => '[owad date="post_date"]',
-				'post_status'    => 'draft',
+				'post_content'   => '[owad date="'. $word["date"] .'"]',
+				'post_status'    => 'publish', // changing it to draft may cause problems
 				'post_type'      => 'post', // it's not a page ;-)
 				'post_author'    => $options['owad_post_author'],
 				'post_category'  => $options['owad_post_category']
@@ -397,15 +399,8 @@ class Owad
 			{
 				add_post_meta( $post_id , '_owad', "One Word A Day");
 				add_post_meta( $post_id , '_owad_hide_question', "true");
-				
-				$this->post_comment( $post_id );
 			}
-			
-			/*
-				$processing_new_post = false;
-			}
-			//*/
-			}
+		}
 	}
 	
 	function post_comment( $post_id )
@@ -418,7 +413,7 @@ class Owad
 			'comment_author_url'    => 'http://slopjong.de/2009/03/20/one-word-a-day/',
 			'comment_author_email'  => '',
 			'comment_content'       => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
-			'comment_type'          => 'pingback',
+			'comment_type'          => 'trackback',
 			'comment_agent'         => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
 			'comment_post_ID'       => $post_id 
 			);
