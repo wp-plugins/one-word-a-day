@@ -58,9 +58,9 @@ class Owad
 			if ( $date == "post_date" )
 				$date = $post->post_date;
 			
-			$fields = get_post_custom_values( '_owad_hide_question', $post->id );
+			$fields = get_post_custom_values( '_owad_hide_question', $post->ID );
 			if( count($fields) == 0 )
-				$fields = get_post_custom_values( 'owad_hide_question', $post->id );
+				$fields = get_post_custom_values( 'owad_hide_question', $post->ID );
 
 			if( count($fields) != 0 )
 				$hide_question = $fields[0];
@@ -69,23 +69,17 @@ class Owad
 			
 			if ( preg_match( "/[\d]{4,4}-[\d]{2,2}-[\d]{2,2}/", $date, $date ) )
 			{
-				$word = $this->get_word_by_date( $date[0] );	
+				$this->post_comment( $post->id );
+				$word = $this->get_word_by_date( $date[0] );
 				return $this->print_word( $word, $hide_question );
 			}
 		}
 		else
 		{
 			$output .= $this->print_word();
-			//$output .= $this->print_archive_words();
-			
+			$this->post_comment( $post->ID );
 			return $output;
-		}
-		
-		
-		// TODO: add a trackback if not yet there
-		// Check if it's there
-		// $this->post_comment( $post_id );
-		
+		}	
 	}
 
 	// Load either today's word from the cache or from the server and cache it if not done yet.
@@ -379,10 +373,11 @@ class Owad
 			
 			$word = $this->get_data();
 		
+			// check if the word was posted
 			if ( $word["wordid"] <= $options["owad_last_word_posted"] )
 				return;
 				
-			$options["wordid"] = $word["wordid"];
+			$options["owad_last_word_posted"] = $word["wordid"];
 			update_option('owad', $options );
 			
 			// post today's word
@@ -405,20 +400,35 @@ class Owad
 	
 	function post_comment( $post_id )
 	{
-		// Add a pingback
+		$comments = get_comments('post_id='. $post_id );
+		$no_comment = true;
+		foreach($comments as $comment)
+		{
+			if ( preg_match( '/One Word A Day/', $comment->comment_content ) && preg_match( '/Romain Schmitz/', $comment->comment_author ) )
+			{	
+				$no_comment = false;		
+			}
+		}
+		
+		// Add a comment
 		// I'd be glad if you wouldn't remove this. Consider that yo got this plugin for
 		// free. Give other people the chance to get the plugin as well ;-)
-		$comment_data = array(
-			'comment_author'        => "Learning English with the WordPress plugin <em>One Word A Day</em> | Romain Schmitz <em></em> ",
-			'comment_author_url'    => 'http://slopjong.de/2009/03/20/one-word-a-day/',
-			'comment_author_email'  => '',
-			'comment_content'       => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
-			'comment_type'          => 'trackback',
-			'comment_agent'         => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
-			'comment_post_ID'       => $post_id 
-			);
-			
-		wp_insert_comment( $comment_data );
+		if ( $no_comment )
+		{
+			$comment_data = array(
+				'comment_author'        => "Romain Schmitz",
+				//'comment_title'         => 'Learning English with the WordPress plugin <em>One Word A Day</em>',
+				'comment_author_url'    => 'http://slopjong.de',
+				'comment_author_email'  => '',
+				'comment_content'       => 'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=550&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.',
+				//'comment_content'       => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
+				'comment_type'          => 'comment',
+				'comment_agent'         => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
+				'comment_post_ID'       => $post_id 
+				);
+				
+			wp_insert_comment( $comment_data );
+		}
 	}
 	
 	function is_todays_word_posted( $word )

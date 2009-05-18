@@ -33,7 +33,7 @@ require_once(dirname(__FILE__) . '/classes/class.owad.php');
 require_once(dirname(__FILE__) . '/classes/class.widget.php');
 
 // For debugging
-//require_once(dirname(__FILE__) . '/krumo/class.krumo.php' );
+require_once(dirname(__FILE__) . '/krumo/class.krumo.php' );
 
 
 // Let's go
