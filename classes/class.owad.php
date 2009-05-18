@@ -4,6 +4,7 @@ define( "OWAD_USE_CACHE", true );
 
 class Owad
 {
+
 	/**
 	* PHP 4 Compatible Constructor
 	*/
@@ -23,7 +24,10 @@ class Owad
 		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 
 		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
-		add_action('init', array( &$this, 'post_todays_word') );
+		
+		global $wp_did_header;
+		if ( isset($wp_did_header) )
+			add_action('plugins_loaded', array( &$this, 'post_todays_word') );
 			
 	}
 	
@@ -359,6 +363,8 @@ class Owad
 	
 	function post_todays_word()
 	{
+		//static $processing_new_post;
+		
 		if ( ! is_admin() )
 		{
 			global $owad_default_options;
@@ -371,13 +377,18 @@ class Owad
 		
 			if ( $this->is_todays_word_posted( $word ) || $this->is_holiday( $word["date"] ) )
 				return;
-				
+			
+			/*
+			if ( !$processing_new_post )
+			{
+				$processing_new_post = true;
+			//*/	
 			// post today's word
 			$post_id = wp_insert_post(array(
 				'post_title'     => 'What does "'. $word["todays_word"] .'" mean?',
 				'post_content'   => '[owad date="post_date"]',
-				'post_status'    => 'publish',
-				'post_type'      => 'post',
+				'post_status'    => 'draft',
+				'post_type'      => 'post', // it's not a page ;-)
 				'post_author'    => $options['owad_post_author'],
 				'post_category'  => $options['owad_post_category']
 				));
@@ -389,7 +400,12 @@ class Owad
 				
 				$this->post_comment( $post_id );
 			}
-		}
+			
+			/*
+				$processing_new_post = false;
+			}
+			//*/
+			}
 	}
 	
 	function post_comment( $post_id )

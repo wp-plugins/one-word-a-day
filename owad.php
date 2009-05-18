@@ -37,7 +37,7 @@ require_once(dirname(__FILE__) . '/classes/class.widget.php');
 
 
 // Let's go
-if ( class_exists('Owad') && !isset($owad) && isset($wp_did_header) )
+if ( class_exists('Owad')  && !isset($owad)  )
 	$owad = new Owad();
 
 
