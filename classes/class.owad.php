@@ -27,7 +27,7 @@ class Owad
 		
 		global $wp_did_header;
 		if ( isset($wp_did_header) )
-			add_action('plugins_loaded', array( &$this, 'post_todays_word') );
+			add_action('init', array( &$this, 'post_todays_word') );
 			
 	}
 	
