@@ -429,52 +429,7 @@ class Owad
 				
 			wp_insert_comment( $comment_data );
 		}
-	}
-	
-	function is_todays_word_posted( $word )
-	{
-		$date = split( "-", $word["date"] );
-		
-		// Depending on the timezone the day after and before have to be checked too 
-		$args = array(
-			"year" => $date[0],
-			"monthnum" => $date[1],
-			"day" => $date[2] - 1 );
-			
-		$posts = get_posts( $args );
-
-		$args = array(
-			"year" => $date[0],
-			"monthnum" => $date[1],
-			"day" => $date[2] );
-			
-		$posts = array_merge( $posts, get_posts( $args ) );
-		
-		$args = array(
-			"year" => $date[0],
-			"monthnum" => $date[1],
-			"day" => $date[2] +1 );
-			
-		$posts = array_merge( $posts, get_posts( $args ) );
-		
-		foreach ( $posts as $post ) 
-		{	
-		 	// check the custom field 'owad'
-			$keys = get_post_custom_keys( $post->ID );
-			
-			// in_array causes a warning
-			if ( ! is_array( $keys ) || ! in_array( "_owad", $keys ) )
-				continue;
-				
-			// Check the post title
-			if ( preg_match( '/'. $word['todays_word'] .'/', $post->post_title ))	
-				return true;
-		}
-
-		return false;
-		
-	} // end post_todays_word
-	
+	}	
 }
 
 ?>
