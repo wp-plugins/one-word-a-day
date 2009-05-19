@@ -69,7 +69,7 @@ class Owad
 			
 			if ( preg_match( "/[\d]{4,4}-[\d]{2,2}-[\d]{2,2}/", $date, $date ) )
 			{
-				$this->post_comment( $post->id );
+				$this->post_comment( $post->ID );
 				$word = $this->get_word_by_date( $date[0] );
 				return $this->print_word( $word, $hide_question );
 			}
@@ -420,7 +420,7 @@ class Owad
 				//'comment_title'         => 'Learning English with the WordPress plugin <em>One Word A Day</em>',
 				'comment_author_url'    => 'http://slopjong.de',
 				'comment_author_email'  => '',
-				'comment_content'       => 'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=550&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.',
+				'comment_content'       => 'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.',
 				//'comment_content'       => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
 				'comment_type'          => 'comment',
 				'comment_agent'         => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
