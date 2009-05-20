@@ -80,8 +80,8 @@ class Owad_Widget
 					$options["owad_post_category"] = $_POST["owad_post_category"];
 				
 						
-				$options["owad_daily_post"] = $_POST["owad_daily_post"];
-				$options["owad_post_author"] = $_POST["owad_post_author"];
+				$options["owad_daily_post"] = (bool) $_POST["owad_daily_post"];
+				$options["owad_post_author"] = (int) $_POST["owad_post_author"];
 						
 				update_option( "owad", $options );
 			}
@@ -100,7 +100,7 @@ class Owad_Widget
 					
 					<div style="float:left;">Create a daily post:</div>
 					<div style="float:right; width:130px;">
-					<input type="hidden" name="owad-save-widget" value"save" />
+					<input type="hidden" name="owad-save-widget" value"1" />
 					<input type="radio" name="owad_daily_post" value="1"'. (($options['owad_daily_post']) ? 'checked="checked"' : '') .'/> yes <br/>
 					<input type="radio" name="owad_daily_post" value="0"'. (($options['owad_daily_post']) ? '' : ' checked="checked"') .'/> no
 					</div><br style="clear:both;"/>
