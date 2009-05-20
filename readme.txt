@@ -4,7 +4,7 @@ Donate link:
 Tags: english,learn,learning,widget,sidebar
 Requires at least: 2.5
 Tested up to: 2.8
-Stable tag: 0.2.1.1
+Stable tag: 0.3
 
 Displays a new English word every day with a multiple choice quiz.
 
@@ -23,6 +23,7 @@ That's the way to learn English continuously ;-)
 4. Go to the widgets admin page and drag & drop the widget 'One Word A Day' into your sidebar.
 
 == Frequently Asked Questions ==
+
 
 == Screenshots ==
 
