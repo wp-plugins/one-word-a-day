@@ -65,7 +65,7 @@ class Owad_Widget
 			
 			/******************************************************************************/
 			
-			if ( isset( $_POST["save-widgets"] ))
+			if ( isset( $_POST["owad-save-widget"] ))
 			{
 				$set_to_default = true;
 				foreach( $_POST["owad_post_category"]  as $el )
@@ -100,6 +100,7 @@ class Owad_Widget
 					
 					<div style="float:left;">Create a daily post:</div>
 					<div style="float:right; width:130px;">
+					<input type="hidden" name="owad-save-widget" value"save" />
 					<input type="radio" name="owad_daily_post" value="1"'. (($options['owad_daily_post']) ? 'checked="checked"' : '') .'/> yes <br/>
 					<input type="radio" name="owad_daily_post" value="0"'. (($options['owad_daily_post']) ? '' : ' checked="checked"') .'/> no
 					</div><br style="clear:both;"/>
