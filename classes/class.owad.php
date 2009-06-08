@@ -21,14 +21,16 @@ class Owad
 		if ( class_exists('Owad_Widget') )
 			new Owad_Widget();
 
-		add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
-
-		add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
-		
-		global $wp_did_header;
-		if ( isset($wp_did_header) )
-			add_action('init', array( &$this, 'post_todays_word') );
+		if( $this->supported_by_host () )
+		{
+			add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
+	
+			add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 			
+			global $wp_did_header;
+			if ( isset($wp_did_header) )
+				add_action('init', array( &$this, 'post_todays_word') );
+		}		
 	}
 	
 	// Load javascript scripts and styles
@@ -284,8 +286,16 @@ class Owad
 	
 	function supported_by_host()
 	{
+		$support = true;
+		
 		$modules = get_loaded_extensions();
-		return in_array( "json" , $modules );
+		if ( ! in_array( "json" , $modules ) )
+			$support = false;
+			
+		if ( ! preg_match('/^5/', PHP_VERSION ) )
+			$support = false;
+		
+		return $support;
 	}
 	
 	function print_word( $word = NULL, $hide_question = false )
