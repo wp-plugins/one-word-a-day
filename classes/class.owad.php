@@ -311,7 +311,15 @@ class Owad
 		$output .= '<div>';
 		
 		if ( ! $hide_question )
-			$output .= 'What does <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> mean?';
+		{
+			$question_text = __( 'What does [x] mean', 'owad' );
+			$question_text = str_replace( '?', '', $question_text );
+			$question_text = str_replace( '[x]', '#', $question_text );
+			$question_text = split( '#', $question_text );
+			$output .= trim( $question_text[0] );
+			$output .= ' <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> ';
+			$output .= trim( $question_text[1] ) .'?';
+		}
 			
 		$output .= '
 
@@ -334,13 +342,12 @@ class Owad
 		$counts = count( $sets );
 		if ( $counts > 1 )
 		{
-			$output .= '
-
-			Older words:
-		
-			<form id="owad_wordid">
-			<select style="width:100%;" name="wordid" onchange="loadData();">
-			';
+			$output .= __( 'Other words', 'owad' );
+			
+			$output .='
+				<form id="owad_wordid">
+				<select style="width:100%;" name="wordid" onchange="loadData();">
+				';
 			
 			$words = array();
 			for ( $i = 0; $i<$counts; $i++ )
