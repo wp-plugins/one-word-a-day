@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== One Word A Day ===
 Contributors: mcosx
 Donate link: 
 Tags: english,learn,learning,widget,sidebar
@@ -10,10 +10,14 @@ Displays a new English word every day with a multiple choice quiz.
 
 == Description ==
 
-The 'One Word A Day' widget displays a new English word every day. A quiz is included that shows 
-three given choices but only one is correct.
+The 'One Word A Day' widget displays a new English word every workday. A quiz is included that shows 
+three given choices but only one is correct. The widget's content can also be displayed in a post or page.
+Take a look in the FAQ section to see how you do this.
 
-That's the way to learn English continuously ;-)
+You can also activate an automated post generator which will create a daily post with the quiz. This can
+be annoying for your readers so be careful with this function. 
+
+Learning English should make fun. Hopefully you do with this plugin ;-)
 
 == Installation ==
 
@@ -24,7 +28,30 @@ That's the way to learn English continuously ;-)
 
 == Frequently Asked Questions ==
 
+= How do I use the translations? =
+
+You have to adopt your wp-config file in your WordPress installation folder. 
+Change `define ('WPLANG', '');` into `define ('WPLANG', 'xx_XX');` using the desired country code.
+
+= I've changed the country code but the question still appears in English? =
+
+Either you mistyped the code or the plugin wasn't translated into your language yet. If so contact me.
+
+= How do I display the quiz into a post or page? =
+
+For this the shortcode [owad] was defined. Type one of these shortcode types in your post or page:
+
+**[owad]**
+Displays today's word quiz
+
+**[owad date="2009-06-10"]**
+Displays the word quiz for the given date.
+
+**[owad date="post_date"]**
+Displays the word quiz for the post's date. Changing the the publish date will effect a change of the quiz content.
 
 == Screenshots ==
 
-1. Quite simple box in the sidebar.
+1. This is how it looks like in the sidebar.
+2. By default no daily post is created.
+3. If you switch the daily post on the author and post categories can be selected.
