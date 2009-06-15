@@ -30,7 +30,11 @@ define('OWAD_VERSION',"0.2.1");
 require_once(dirname(__FILE__) . '/settings/constants.php');
 require_once(dirname(__FILE__) . '/settings/settings.php');
 require_once(dirname(__FILE__) . '/classes/class.owad.php');
-require_once(dirname(__FILE__) . '/classes/class.widget.php');
+
+if( version_compare( $wp_version, "2.8", "<" ) )
+	require_once(dirname(__FILE__) . '/classes/class.widget.php');
+else
+	require_once(dirname(__FILE__) . '/classes/class.widget28.php');
 
 // load language file
 load_plugin_textdomain( 'owad', false, OWAD_FOLDER .'/lang' );
