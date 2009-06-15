@@ -3,7 +3,7 @@ Contributors: mcosx
 Donate link: 
 Tags: english,learn,learning,widget,sidebar
 Requires at least: 2.5
-Tested up to: 2.8
+Tested up to: 2.7
 Stable tag: 0.2.2
 
 Displays a new English word every day with a multiple choice quiz.
@@ -55,3 +55,33 @@ Displays the word quiz for the post's date. Changing the the publish date will e
 1. This is how it looks like in the sidebar.
 2. By default no daily post is created.
 3. If you switch the daily post on the author and post categories can be selected.
+
+== Requirements ==
+
+* PHP5. Often the providers offer the versions 4 and 5 that can be configured by you. There should be
+a switch available in your webspace configuration panel. If you're not sure ask your provider to ask
+how you can activate PHP5.
+
+* json. This is a php module that is available by most webhosting providers.
+
+== WordPress compatible versions ==
+
+If the newest stable WordPress version isn't listed here yet I still work on it. 
+
+* 2.5
+* 2.6
+* 2.7
+
+== Not compatible WordPress versions ==
+
+* 1.x
+* < 2.5
+* 2.8
+
+== History ==
+
+Not listed minor versions ( e.g. 0.2.1 ) include bugfixes or code improvements.
+
+* 0.3: Added localization. This means that the question *What does # mean?* appears in your language.
+* 0.2: Use of the built-in cache. Previous words can be selected.
+* 0.1: Initial version just containing the quiz  
