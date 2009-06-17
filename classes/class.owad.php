@@ -95,7 +95,8 @@ class Owad
 
 	function on_admin_menu() 
 	{
-		$this->pagehook = add_posts_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, /*'admin_subpage'*/ 'on_show_page'));
+		// If the page hook gets changed, don't forget to change the link to this admin page too in the widget form
+		$this->pagehook = add_options_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_page'));
 		
 		//register callback gets call prior your own page gets rendered
 		add_action( 'load-'. $this->pagehook, array( &$this, 'on_load_page') );
@@ -240,13 +241,6 @@ class Owad
 			
 			<br style="clear:both;"/>
 		';
-	}
-
-	function admin_page()
-	{
-		if (function_exists('add_submenu_page'))
-	        add_posts_page( 'One Word A Day', 'One Word A Day', 10, "one-word-a-day", array( &$this, 'admin_subpage') );
-
 	}
 	
 	/*****************************************************************************************/	

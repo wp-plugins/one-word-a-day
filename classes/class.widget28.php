@@ -52,6 +52,10 @@ class Owad_Widget extends WP_Widget
 			</label>
 		</p>
 		
+		<p>
+			Go to the <a href="<?= get_bloginfo('url'); ?>/wp-admin/options-general.php?page=one_word_a_day">options page</a> for more settings.
+		</p>
+		
 		<input type="hidden" id="<?= $this->get_field_id('submit') ?>" name="<?= $this->get_field_name('submit') ?>" value="1" />
 	<?php
 	}
