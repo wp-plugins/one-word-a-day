@@ -4,7 +4,6 @@ define( "OWAD_USE_CACHE", true );
 
 class Owad
 {
-
 	/**
 	* PHP 4 Compatible Constructor
 	*/
@@ -17,9 +16,15 @@ class Owad
 	* PHP 5 Constructor
 	*/		
 	function __construct()
-	{		
-		if ( class_exists('Owad_Widget') )
-			new Owad_Widget();
+	{	
+		global $wp_version;
+		if( version_compare( $wp_version, "2.8", "<") )
+		{
+			if ( class_exists('Owad_Widget') )
+				new Owad_Widget();
+		}
+		else
+			add_action('widgets_init', array( &$this, 'widget_init') );
 
 		if( $this->supported_by_host () )
 		{
@@ -30,7 +35,246 @@ class Owad
 			global $wp_did_header;
 			if ( isset($wp_did_header) )
 				add_action('init', array( &$this, 'post_todays_word') );
-		}		
+		}	
+
+		add_filter('screen_layout_columns', array(&$this, 'on_screen_layout_columns'), 10, 2);
+		add_action('admin_menu', array(&$this, 'on_admin_menu')); 
+		add_action('admin_post_one-word-a-day', array(&$this, 'on_save_changes'));
+	}
+	
+	/*****************************************************************************************/
+
+	function on_save_changes() 
+	{
+		//user permission check
+		if ( !current_user_can('manage_options') )
+			wp_die( __('Cheatin&#8217; uh?') );			
+		//cross check the given referer
+		check_admin_referer('one-word-a-day');
+	
+		//process here your on $_POST validation and / or option saving
+		
+		//echo "<pre>". print_r( $_POST, true ) ."</pre>";
+		//exit;
+		
+		//lets redirect the post request into get request (you may add additional params at the url, if you need to show save results
+		wp_redirect($_POST['_wp_http_referer']);		
+	}
+	
+	function on_screen_layout_columns($columns, $screen) 
+	{
+		if ($screen == $this->pagehook)
+			$columns[$this->pagehook] = 2;
+			
+		return $columns;
+	}
+
+	function on_admin_menu() 
+	{
+		$this->pagehook = add_posts_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, /*'admin_subpage'*/ 'on_show_page'));
+		
+		//register callback gets call prior your own page gets rendered
+		add_action( 'load-'. $this->pagehook, array( &$this, 'on_load_page') );
+		add_action( 'admin_print_scripts-'. $this->pagehook, array( &$this, 'my_plugin_init') );
+	}
+	
+	
+	function on_show_page() 
+	{
+		//we need the global screen column value to beable to have a sidebar in WordPress 2.8
+		global $screen_layout_columns;
+
+		?>
+		<div id="one-word-a-day" class="wrap">
+		<?php screen_icon('options-general'); ?>
+		<h2>One Word A Day</h2>
+		<form action="admin-post.php" method="post">
+		
+			<?php 
+				// this nonce field is used for the referer check
+				wp_nonce_field('one-word-a-day');
+				wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false );
+				wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
+			?>
+		
+			<?php /* REALLY NEEDED? */ ?>	
+			<input type="hidden" name="action" value="one-word-a-day" />
+		
+			<div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
+				<div id="side-info-column" class="inner-sidebar">
+					<?php do_meta_boxes($this->pagehook, 'side', $data); ?>
+				</div>
+				<div id="post-body" class="has-sidebar">
+					<div id="post-body-content" class="has-sidebar-content">
+						
+						<?php 
+							do_meta_boxes($this->pagehook, 'normal', null); 
+						?>
+						<p>
+							<input type="submit" value="Save Changes" class="button-primary" name="Submit"/>	
+						</p>
+					</div>
+				</div>
+												
+			</div>	
+		</form>
+		</div>
+		
+	<script type="text/javascript">
+		//<![CDATA[
+		jQuery(document).ready( function($) {
+			// close postboxes that should be closed
+			$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+			// postboxes setup
+			postboxes.add_postbox_toggles('<?php echo $this->pagehook; ?>');
+		});
+		//]]>
+	</script>
+		
+		<?php
+	}
+	
+	function my_plugin_init()
+	{
+		wp_enqueue_script('post');
+		if ( user_can_richedit() )
+			wp_enqueue_script('editor');
+		
+		add_thickbox();
+		wp_enqueue_script('media-upload');
+	}
+	
+	//will be executed if wordpress core detects this page has to be rendered
+	function on_load_page() 
+	{
+		//ensure, that the needed javascripts been loaded to allow drag/drop, expand/collapse and hide/show of boxes
+		wp_enqueue_script('common');
+		wp_enqueue_script('wp-lists');
+		wp_enqueue_script('postbox');
+
+		add_meta_box('categorydiv', __('Categories'), array( &$this, 'on_post_categories_meta_box'), $this->pagehook, 'side', 'core');
+		add_meta_box('post-author-div', __('Post author'), array( &$this, 'on_post_author_meta_box'), $this->pagehook, 'side', 'core');
+		add_meta_box('owad-post-generator', 'Auto post generator', array( &$this, 'on_activate_generator_meta_box'), $this->pagehook, 'normal', 'core'); 
+		add_meta_box('owad-comment-text', 'Comment text - <a href="http://slopjong.de" target="_blank">Slopjong</a> would be glad if you left him a reference :-)', array( &$this, 'on_comment_text_meta_box'), $this->pagehook, 'normal', 'core'); 
+	}
+	
+	function on_post_categories_meta_box() 
+	{		?>		<ul id="category-tabs">			<li class="tabs"><a href="#categories-all" tabindex="3"><?php _e( 'All Categories' ); ?></a></li>			<li class="hide-if-no-js"><a href="#categories-pop" tabindex="3"><?php _e( 'Most Used' ); ?></a></li>		</ul>				<div id="categories-pop" class="tabs-panel" style="display: none;">			<ul id="categorychecklist-pop" class="categorychecklist form-no-clear" >		<?php $popular_ids = wp_popular_terms_checklist('category'); ?>			</ul>		</div>				<div id="categories-all" class="tabs-panel">			<ul id="categorychecklist" class="list:category categorychecklist form-no-clear">		<?php wp_category_checklist(0, false, false, $popular_ids) ?>			</ul>		</div>				<?php if ( current_user_can('manage_categories') ) : ?>		<div id="category-adder" class="wp-hidden-children">			<h4><a id="category-add-toggle" href="#category-add" class="hide-if-no-js" tabindex="3"><?php _e( '+ Add New Category' ); ?></a></h4>			<p id="category-add" class="wp-hidden-child">			<label class="screen-reader-text" for="newcat"><?php _e( 'Add New Category' ); ?></label><input type="text" name="newcat" id="newcat" class="form-required form-input-tip" value="<?php esc_attr_e( 'New category name' ); ?>" tabindex="3" aria-required="true"/>			<label class="screen-reader-text" for="newcat_parent"><?php _e('Parent category'); ?>:</label><?php wp_dropdown_categories( array( 'hide_empty' => 0, 'name' => 'newcat_parent', 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => __('Parent category'), 'tab_index' => 3 ) ); ?>			<input type="button" id="category-add-sumbit" class="add:categorychecklist:category-add button" value="<?php esc_attr_e( 'Add' ); ?>" tabindex="3" />		<?php	wp_nonce_field( 'add-category', '_ajax_nonce', false ); ?>			<span id="category-ajax-response"></span></p>		</div>		<?php		endif;		}
+	
+	function on_post_author_meta_box()
+	{
+		echo '<select id="owad_post_author" class="widefat" name="owad_post_author">';
+		$users = get_users_of_blog();
+		foreach( $users as $user)			
+			echo '<option value="'. $user->user_id .'"'. (( $user->user_id == $options['owad_post_author']) ? 'selected="selected"' :"" )
+			.'>' . $user->user_login .'</option>';
+		echo '</select>';	
+	}
+	
+	function on_comment_text_meta_box()
+	{
+		?>							
+		<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
+			<?php 
+				the_editor('Test', $id = 'content', $prev_id = 'title', $media_buttons = true, $tab_index = 2); 
+			?>
+		</div>
+			
+
+		<?php
+			add_filter( 'teeny_mce_before_init', create_function( '$a', '$a["height"] = "400"; $a["onpageload"] = ""; $a["mode"] = "textareas"; $a["editor_selector"] = "theEditor"; return $a;' ) );
+			wp_tiny_mce( true );
+	}
+	
+	function on_activate_generator_meta_box()
+	{
+		// TODO: get the options 
+		echo '
+			<script type="text/javascript">
+									
+				jQuery(document).ready(function(){
+					// adapt the id to the metaboxes ids
+					jQuery("input[name=owad_daily_post]").change(function () { 
+						jQuery("#owad_post_settings").toggle("slow");
+						});	
+					});
+					
+			</script>
+			
+			<div style="width:300px;">
+				<div style="float:left;">Do you wish a daily post?</div>
+				<div style="float:right; width:130px;">
+					<input type="radio" name="owad_daily_post" value="1"'. (($options['owad_daily_post']) ? 'checked="checked"' : '') .'/> yes <br/>
+					<input type="radio" name="owad_daily_post" value="0"'. (($options['owad_daily_post']) ? '' : ' checked="checked"') .'/> no
+				</div>
+			</div>
+			
+			<br style="clear:both;"/>
+		';
+	}
+
+		
+	function admin_page()
+	{
+		if (function_exists('add_submenu_page'))
+	        add_posts_page( 'One Word A Day', 'One Word A Day', 10, "one-word-a-day", array( &$this, 'admin_subpage') );
+
+	}
+	
+	function admin_subpage()
+	{
+		global $owad_default_options;		
+		$options = get_option('owad');
+		$options = wp_parse_args( $options, $owad_default_options );		
+
+		/******************************************************************************/
+		
+		if ( isset( $_POST["owad-save-widget"] ))
+		{
+			$set_to_default = true;
+			foreach( $_POST["owad_post_category"]  as $el )
+			{
+				if ( !empty($el))
+					$set_to_default = false;
+			}
+			
+			if ( $set_to_default )
+				$options["owad_post_category"] = $owad_default_options["owad_post_category"];
+			else
+				$options["owad_post_category"] = $_POST["owad_post_category"];
+			
+					
+			$options["owad_daily_post"] = (bool) $_POST["owad_daily_post"];
+			$options["owad_post_author"] = (int) $_POST["owad_post_author"];
+					
+			update_option( "owad", $options );
+		}
+		
+		/******************************************************************************/			
+		?>
+		<div class="wrap">
+	
+			<h2>One Word A Day <?= $new_version ?></h2>
+		
+		<?php	
+			
+		/******************************************************************************/
+		
+		// The post settings block
+		echo '<div id="owad_post_settings" style="';
+		if( ! $options['owad_daily_post'] )	
+			echo 'display:none;';
+		echo '">';
+				
+		echo "</form>";
+		echo "</div>";
+	}
+	
+	/*****************************************************************************************/	
+	
+	function widget_init()
+	{
+		register_widget('Owad_Widget');
 	}
 	
 	// Load javascript scripts and styles
@@ -298,7 +542,7 @@ class Owad
 		return $support;
 	}
 	
-	function print_word( $word = NULL, $hide_question = false )
+	function print_word( $word = NULL, $hide_question = false, $widget_id = '' )
 	{
 
 		if ( NULL == $word )
@@ -317,16 +561,16 @@ class Owad
 			$question_text = str_replace( '[x]', '#', $question_text );
 			$question_text = split( '#', $question_text );
 			$output .= trim( $question_text[0] );
-			$output .= ' <strong><span id="owad_todays_word">'. $todays_word .'</span></strong> ';
+			$output .= ' <strong><span id="owad_todays_word_'. $widget_id .'">'. $todays_word .'</span></strong> ';
 			$output .= trim( $question_text[1] ) .'?';
 		}
 			
 		$output .= '
 
 			<table>
-			<tr><td valign="top">a)</td><td> <a id="owad_alt1" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_1'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox">'. $alternatives[0] .'</a> </td></tr>
-			<tr><td valign="top">b)</td><td> <a id="owad_alt2" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_3'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox">'. $alternatives[1] .'</a> </td></tr>
-			<tr><td valign="top">c)</td><td> <a id="owad_alt3" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_5'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox">'. $alternatives[2] .'</a> </td></tr>
+			<tr><td valign="top">a)</td><td> <a id="owad_alt1_'. $widget_id .'" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_1'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox">'. $alternatives[0] .'</a> </td></tr>
+			<tr><td valign="top">b)</td><td> <a id="owad_alt2_'. $widget_id .'" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_3'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox">'. $alternatives[1] .'</a> </td></tr>
+			<tr><td valign="top">c)</td><td> <a id="owad_alt3_'. $widget_id .'" href="http://owad.slopjong.de/'. urlencode( str_replace( " ", "_", $todays_word )) .'_5'. $wordid .'.html?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox">'. $alternatives[2] .'</a> </td></tr>
 			</table>
 			</div>
 			';
@@ -334,7 +578,7 @@ class Owad
 		return $output;
 	}
 	
-	function print_archive_words()
+	function print_archive_words( $widget_id = '' )
 	{
 		$output = '';
 		$sets = $this->fetch_archive_words();
@@ -345,8 +589,8 @@ class Owad
 			$output .= __( 'Other words', 'owad' );
 			
 			$output .='
-				<form id="owad_wordid">
-				<select style="width:100%;" name="wordid" onchange="loadData();">
+				<form id="owad_wordid_'. $widget_id .'">
+				<select style="width:100%;" name="wordid" onchange="loadData('. $widget_id .');">
 				';
 			
 			$words = array();
