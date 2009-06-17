@@ -445,7 +445,7 @@ class Owad
 	
 	function fetch_todays_word()
 	{	
-		$file = "http://owad.de/index.php4";
+		$file = "http://owad.de/index_en.php4";
 		$page = wp_remote_fopen($file);
 	
 		$pattern = "[[:print:]]+";
@@ -543,6 +543,10 @@ class Owad
 			$output .= ' <strong><span id="owad_todays_word_'. $widget_id .'">'. $todays_word .'</span></strong> ';
 			$output .= trim( $question_text[1] ) .'?';
 		}
+			
+		// If today's word is empty (due to a change of the service web page owad.de) it is set to a dummy text. This is required by the popup.
+		if( empty($todays_word) )
+			$todays_word = "todays_word";
 			
 		$output .= '
 
