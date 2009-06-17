@@ -77,7 +77,13 @@ class Owad
 			$options["owad_daily_post"] = (bool) $_POST["owad_daily_post"];
 			
 		if ( isset( $_POST['content'] ))
+		{
 		  	$options["comment_content"] = stripslashes($_POST['content']);
+		  	
+		  	// This is needed to avoid multpile comments with the same content
+		  	if( !preg_match( "One Word A Day" , $options["comment_content"] ) )
+		  		$options["comment_content"] .= "<!-- One Word A Day -->";	
+		}
 		 	
 		update_option( "owad", $options );
 		
@@ -634,6 +640,8 @@ class Owad
 	
 	function post_comment( $post_id )
 	{
+		$options = $this->get_options();
+		
 		$comments = get_comments('post_id='. $post_id );
 		$no_comment = true;
 		foreach($comments as $comment)
@@ -654,7 +662,7 @@ class Owad
 				//'comment_title'         => 'Learning English with the WordPress plugin <em>One Word A Day</em>',
 				'comment_author_url'    => 'http://slopjong.de',
 				'comment_author_email'  => '',
-				'comment_content'       => 'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.',
+				'comment_content'       => $options['comment_content'], //'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.',
 				//'comment_content'       => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
 				'comment_type'          => 'comment',
 				'comment_agent'         => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
