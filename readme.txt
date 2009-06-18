@@ -31,7 +31,7 @@ Learning English should make fun. Hopefully you do with this plugin ;-)
 = How do I use the translations? =
 
 You have to adopt your wp-config file in your WordPress installation folder. 
-Change `define ('WPLANG', '');` into `define ('WPLANG', 'xx_XX');` using the desired country code.
+Change `define ('WPLANG', '');` into `define ('WPLANG', 'xx_XX');` using the desired country code, e.g. de_DE.
 
 = I've changed the country code but the question still appears in English? =
 
@@ -70,7 +70,7 @@ how you can activate PHP5.
 * 2.8
 
 == Not tested WordPress versions ==
-Listed version here 
+
 * 1.x
 * < 2.7
 
