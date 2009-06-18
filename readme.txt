@@ -3,7 +3,7 @@ Contributors: mcosx
 Donate link: 
 Tags: english,learn,learning,widget,sidebar
 Requires at least: 2.5
-Tested up to: 2.7
+Tested up to: 2.8
 Stable tag: 0.2.2
 
 Displays a new English word every day with a multiple choice quiz.
@@ -66,22 +66,18 @@ how you can activate PHP5.
 
 == WordPress compatible versions ==
 
-If the newest stable WordPress version isn't listed here yet I still work on it. 
-
-* 2.5
-* 2.6
 * 2.7
-
-== Not compatible WordPress versions ==
-
-* 1.x
-* < 2.5
 * 2.8
+
+== Not tested WordPress versions ==
+Listed version here 
+* 1.x
+* < 2.7
 
 == History ==
 
 Not listed minor versions ( e.g. 0.2.1 ) include bugfixes or code improvements.
 
-* 0.3: Added localization. This means that the question *What does # mean?* appears in your language.
+* 0.3: Added localization. This means that the question *What does # mean?* appears in your language. Added a visual editor to edit the comment posted by auto post generator.
 * 0.2: Use of the built-in cache. Previous words can be selected.
 * 0.1: Initial version just containing the quiz  
