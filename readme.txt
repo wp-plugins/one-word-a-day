@@ -58,9 +58,12 @@ Displays the word quiz for the post's date. Changing the the publish date will e
 
 == Requirements ==
 
-* PHP5. Often the providers offer the versions 4 and 5 that can be configured by you. There should be
-a switch available in your webspace configuration panel. If you're not sure ask your provider to ask
-how you can activate PHP5.
+* PHP5. I don't care about php4 compatibility during the development. So it's possible that the plugin doesn't work
+if you use PHP4. There are several ways to activate PHP5:
+1. There is a .htaccess file in the plugin. Remove `#` from the line `#AddHandler application/x-httpd-php5 .php`.
+If this has no or negative influence add `#` again. Then try number 2.
+1. Often the providers offer both. If so you should be able to select which one you prefer in your 
+webspace configuration panel. If you're not sure ask your provider how to activate PHP5.
 
 * json. This is a php module that is available by most webhosting providers.
 
