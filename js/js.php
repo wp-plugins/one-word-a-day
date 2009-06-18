@@ -15,6 +15,10 @@ echo <<<JAVASCRIPT
 		// Loads the word in the json format		
 		function loadData( widget_id )
 		{
+			// If an older WordPress version than 2.8 is used the argument is missing which has to be created then
+			if( !widget_id )
+				var widget_id = '';
+				
 			var dataToBeSent = jQuery('#owad_wordid_' + widget_id ).serialize();
 
 			jQuery.getJSON("${url_path}word2json.php", dataToBeSent, function(json){
