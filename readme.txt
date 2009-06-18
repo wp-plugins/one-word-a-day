@@ -37,7 +37,7 @@ Change `define ('WPLANG', '');` into `define ('WPLANG', 'xx_XX');` using the des
 
 Either you mistyped the code or the plugin wasn't translated into your language yet. If so contact me.
 
-= How do I display the quiz into a post or page? =
+= How do I display the quiz in a post or page? =
 
 For this the shortcode [owad] was defined. Type one of these shortcode types in your post or page:
 
