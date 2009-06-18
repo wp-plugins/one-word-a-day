@@ -397,12 +397,9 @@ class Owad
 		  );
 	
 		return $set;
-	}
+	}	
 	
-	
-	// TODO: Den Rest 'morgen' dokumentieren.
-	
-	
+	// Cache the word.
 	function save_set( $set, $words )
 	{
 		extract( $set );
@@ -419,6 +416,7 @@ class Owad
 		fwrite( $file , $words->asXML() );
 	}
 	
+	// Retrieve the cached words
 	function fetch_archive_words()
 	{	// *
 		if ( file_exists( OWAD_CACHE_FILE ) )
@@ -443,6 +441,7 @@ class Owad
 		//*/
 	}
 	
+	// Parses the service page to fetch the desired data for this plugin.
 	function fetch_todays_word()
 	{	
 		$file = "http://owad.de/index_en.php4";
@@ -521,6 +520,7 @@ class Owad
 		return $support;
 	}
 	
+	// Outputs the question 
 	function print_word( $word = NULL, $hide_question = false, $widget_id = '' )
 	{
 
@@ -561,6 +561,7 @@ class Owad
 		return $output;
 	}
 	
+	// Outputs the select box with previous words
 	function print_archive_words( $widget_id = '' )
 	{
 		$output = '';
@@ -604,6 +605,7 @@ class Owad
 				target="_blank">here</a> to help improve this widget.';
 	}
 	
+	// Create the daily post
 	function post_todays_word()
 	{
 		
