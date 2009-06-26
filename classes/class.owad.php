@@ -1,5 +1,10 @@
 <?php
 
+/************************************
+ If you're a developer stop here. 
+ If you're a programmer go on. 
+***********************************/
+
 define( "OWAD_USE_CACHE", true );
 
 class Owad
@@ -38,14 +43,14 @@ class Owad
 		}	
 
 		add_filter('screen_layout_columns', array(&$this, 'on_screen_layout_columns'), 10, 2);
-
 		add_action('admin_menu', array(&$this, 'on_admin_menu')); 
-
 		add_action('admin_post_one-word-a-day', array(&$this, 'on_save_changes'));
 	}
 	
 	/*****************************************************************************************/
-
+	/*  ADMIN PAGES   ************************************************************************/
+	/*****************************************************************************************/
+	
 	function get_options()
 	{
 		global $owad_default_options;		
@@ -59,14 +64,11 @@ class Owad
 	{		
 
 		//user permission check
-
 		if ( !current_user_can('manage_options') )
-
 			wp_die( __('Cheatin&#8217; uh?') );			
 
 		
 		//cross check the given referer
-
 		check_admin_referer('one-word-a-day');
 
 			
@@ -93,11 +95,9 @@ class Owad
 		  		$options["comment_content"] .= "<!-- One Word A Day -->";	
 		}
 		 	
-		update_option( "owad", $options );
-		
+		update_option( "owad", $options );		
 
 		//lets redirect the post request into get request (you may add additional params at the url, if you need to show save results
-
 		wp_redirect($_POST['_wp_http_referer']);		
 
 	}
@@ -106,12 +106,9 @@ class Owad
 	{
 
 		if ($screen == $this->pagehook)
-
-			$columns[$this->pagehook] = 2;
-			
+			$columns[$this->pagehook] = 2;			
 
 		return $columns;
-
 	}
 
 	function on_admin_menu() 
@@ -119,15 +116,337 @@ class Owad
 		// If the page hook gets changed, don't forget to change the link to this admin page too in the widget form
 
 		$this->pagehook = add_options_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_page'));
+		$this->pagehook_tools = add_management_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_tools'));
 		
 		//register callback gets call prior your own page gets rendered
 
 		add_action( 'load-'. $this->pagehook, array( &$this, 'on_load_page') );
 		add_action( 'admin_print_scripts-'. $this->pagehook, array( &$this, 'my_plugin_init') );
 	}
-	
-	
 
+	// Returns an array with the defect entries
+	function get_defect_entries()
+	{
+		$words = simplexml_load_file( OWAD_CACHE_FILE );
+		$words = $this->object_to_array( $words );
+		
+		$defects = array();
+		foreach( $words["word"] as $item )
+		{				
+			$word = $item["@attributes"]["content"];
+			$word_id = $item["@attributes"]["wordid"];
+			$alternative = $item["alternative"];
+
+			if( empty( $word ) ||
+				empty( $alternative[0] ) ||
+				empty( $alternative[1] ) ||
+				empty( $alternative[2] ) )
+				$defects["word"][] = $item;
+		}		
+		
+		return $defects;
+	}
+	
+	// Returns an array with the all the entries
+	function get_all_entries()
+	{
+		$words = simplexml_load_file( OWAD_CACHE_FILE );
+		return $words = $this->object_to_array( $words );
+		/*
+		$defects = array();
+		foreach( $words["word"] as $item )
+		{				
+			$word = $item["@attributes"]["content"];
+			$word_id = $item["@attributes"]["wordid"];
+			$alternative = $item["alternative"];
+
+			if( empty( $word ) ||
+				empty( $alternative[0] ) ||
+				empty( $alternative[1] ) ||
+				empty( $alternative[2] ) )
+				$defects["word"][] = $item;
+		}		
+		
+		return $defects;
+		*/
+	}
+
+	function get_defect_entries_ids( $entries )
+	{
+		$defects = array();
+		foreach( $entries["word"] as $entry )
+			$defects[] = $entry["@attributes"]["wordid"];
+			
+		return $defects;
+	}
+		
+	function is_entry_defect( $word )
+	{
+		//krumo( $word );
+		
+		if( empty( $word["@attributes"]["wordid"] ) ||
+			empty( $word["@attributes"]["content"] ) ||
+			empty( $word["alternative"][0] ) ||
+			empty( $word["alternative"][1] ) ||
+			empty( $word["alternative"][2] ) 
+			) return true;
+			
+		return false;
+	
+	}
+	
+	function repair_word( $id )
+	{	
+		//echo $id ."<br>";
+		//return;
+		$word = $this->fetch_single_word( "http://owad.de/owad-archive-quiz.php4?id=$id" );
+		echo "http://owad.de/owad-archive-quiz.php4?id=$id";
+		krumo( $word );
+		return;
+		//return $return_value;		
+		return;
+		$result[0] = false;
+		$result[1] = $word;
+		return $result;
+	}
+	
+	function action_repair_defects()
+	{
+		//$defects = $this->get_defect_entries();
+		//$i = 0;
+		
+		$entries = $this->get_all_entries();
+		
+		foreach( $entries["word"] as $key => $entry )
+		{
+			if( $this->is_entry_defect( $entry ) )
+			{
+				//echo  $entry["@attributes"]["wordid"] ;
+				//krumo( $entry["@attributes"]);
+				$word = $this->repair_word( $entry["@attributes"]["wordid"] );//echo $key .'<br>';
+				//if( $i++ == 4)
+				//	break;
+				//krumo( $word );
+				
+			}
+		}
+		
+		//$entries["word"] = $defects;
+		
+		//$defects = $this->get_defect_entries_ids( $defects );
+		//krumo( $defects );
+	}
+	
+	function action_delete_defects()
+	{
+		$defects = $this->get_defect_entries();
+		$defects = $this->get_defect_entries_ids( $defects );
+		
+		$entries = simplexml_load_file( OWAD_CACHE_FILE );
+		$entries = $this->object_to_array( $entries );
+		
+		$good_entries = array();
+		
+		foreach( $entries["word"] as $entry )
+		{
+			if( in_array( $entry["@attributes"]["wordid"], $defects ) )
+				continue;
+				
+			$good_entries["word"][] = $entry;
+		}
+		
+		$good_entries = $this->array_to_xml( $good_entries );
+		file_put_contents( OWAD_CACHE_FILE, $good_entries->asXML() );	
+	}
+	
+	function action_delete_duplicates()
+	{
+		$words = simplexml_load_file( OWAD_CACHE_FILE );
+		$words = (array) $words;
+		$words = $this->object_to_array( $words );
+		$words = $words["word"];
+		
+		// The new sets to be stored
+		$no_duplicates = array();
+		$already_handled = array();
+		
+		foreach( $words as $word )
+		{
+			$word_id = $word["@attributes"]["wordid"];
+			if ( !in_array( $word_id, $already_handled ) )
+				$already_handled[] = $word_id;
+			else
+				continue;
+			
+			$no_duplicates["word"][] = $word;
+		}
+		
+		$words = $this->array_to_xml( $no_duplicates );
+		file_put_contents( OWAD_CACHE_FILE, $words->asXML() );
+	}
+	
+	function array_to_xml( $arr )
+	{
+		$obj = simplexml_load_string("<?xml version='1.0' encoding='utf-8'?><words />");
+		
+		// key = 'word', val = word container
+		foreach( $arr as $key_word => $val)
+		{			
+			// key = numeric, val = container with attributes and alternative
+			foreach( $val as $key => $val)
+			{
+				$word = $obj->addChild( $key_word );
+			
+				//krumo( $val["@attributes"]);
+				foreach( $val["@attributes"] as $key => $val_att )
+					$word->addAttribute( $key, trim($val_att) );
+					
+				foreach( $val["alternative"] as $key => $val_alt )
+					$word->addChild( 'alternative', trim($val_alt) );
+			}
+		}
+		
+		return $obj;
+	}
+	
+	function object_to_array( $obj )
+	{
+		$_arr = is_object($obj) ? get_object_vars($obj) : $obj;
+		  
+		foreach ($_arr as $key => $val) 
+		{
+		  	$val = (is_array($val) || is_object($val)) ? $this->object_to_array($val) : $val;
+			$arr[$key] = $val;
+		}
+    return $arr; 
+	}
+	
+	
+	function on_show_tools()	
+	{	
+	
+		if( isset( $_GET["action"] ) )
+		{
+			// TODO: filter the variable!
+			$action =  $_GET["action"];
+			switch( $action )
+			{
+				case 'repair':
+					$this->action_repair_defects();
+					break;
+					
+				case 'delete':
+					if( isset( $_GET["object"] ) )
+						$object = $_GET["object"];
+					else
+						break;
+					
+					switch( $object )
+					{
+						case 'duplicates':
+							$this->action_delete_duplicates();
+							break;
+						case 'defects':
+							$this->action_delete_defects();
+							break;
+					}
+					
+					break;
+			}
+		}
+	
+		?>
+		<div id="one-word-a-day" class="wrap">
+
+		<?php screen_icon('options-general'); ?>
+
+		<h2>One Word A Day</h2>
+		<h3>Cache Content</h3>
+		
+		
+		<ul id="owad-cache-menu">
+			<li> <a id="owad_show_defects" href="#">Show only defects</a> </li>
+			<li> <a id="owad_show_all" href="#">Show all entries</a> </li>
+			<li> <a id="owad_repair_defects" href="tools.php?page=one_word_a_day&action=repair"><span style="text-decoration: line-through;">Try to</span> Repair defects</a> </li>
+			<li> <a id="owad_delete_defects" href="tools.php?page=one_word_a_day&action=delete&object=defects">Delete defects</a> </li>
+			<li> <a id="owad_delete_duplicates" href="tools.php?page=one_word_a_day&action=delete&object=duplicates">Delete duplicates</a> </li>
+		</ul>
+		<br/>
+		
+		<table class="widefat fixed" cellspacing="0">
+			<thead><tr><th width="200">Word</th><th>Choices</th></tr></thead>
+			<tbody><?php
+			
+				$words = (array) simplexml_load_file( OWAD_CACHE_FILE );
+				$words = (array) $words["word"];
+				$words = array_reverse( $words );
+				
+				//echo "<pre>". print_r( $words, true ) ."</pre>";
+				$defects = array();
+					foreach( $words as $item )
+					{
+						$word = $item["content"];
+						$word_id = $item["wordid"];
+						$alternative = $item->alternative;
+						
+						if( empty( $word ) ||
+							empty( $alternative[0] ) ||
+							empty( $alternative[1] ) ||
+							empty( $alternative[2] ) )
+							$defects[] = $word_id; 
+						
+						echo '<tr id="'. $word_id .'" class="'. (in_array( $word_id, $defects ) ? 'owad_defect' : 'owad_nodefect') .'"><td>'. $word.'</td><td><ul>';
+						
+						$abc = array( 'a', 'b', 'c' );
+						for( $i=0; $i<3; $i++)
+							echo '<li>'. $abc[$i] .')&nbsp;&nbsp;&nbsp;'. $alternative[$i] .'</li>';
+						
+						echo '</ul></td></tr>';
+					}
+			?></tbody>
+		</table>
+		
+		<script type="text/javascript">
+			jQuery(document).ready( function(){
+				jQuery('table tr:odd').css("background-color", "#F9F9F9");
+
+				jQuery('#owad_show_defects').bind( "click", function(e){
+					jQuery('.owad_nodefect').hide();
+					jQuery('tr:visible:odd').css("background-color", "#F9F9F9");
+				});
+				
+				jQuery('#owad_show_all').bind( "click", function(e){
+					jQuery('.owad_nodefect').show();
+					jQuery('tr:visible:odd').css("background-color", "#F9F9F9");
+				});
+				
+				jQuery('#owad-cache-menu li').css( {
+					'display': 'inline',
+					'list-style-type': 'none',
+					'text-decoration' : 'none',
+					'background-color' : '#',
+					'margin-right' : '7px'
+					});
+					
+				jQuery('#owad-cache-menu a').css( {
+					'text-decoration' : 'none'
+					});
+				
+				/*
+				// ask if really delete the entries
+				jQuery('#owad_delete_defects').click( function(e){
+					//alert("");
+					jQuery.post( 'tools.php' );
+					});
+				//*/
+			});
+		</script>
+
+		</div>
+		<?php
+	}
+	
+	
 	function on_show_page() 
 	{
 
@@ -540,26 +859,48 @@ class Owad
 		//*/
 	}
 	
-	// Parses the service page to fetch the desired data for this plugin.
 	function fetch_todays_word()
+	{
+		$this->fetch_single_word( "http://owad.de/index_en.php4" );
+	}
+	
+	// Parses the service page to fetch the desired data for this plugin.
+	function fetch_single_word( $url, $id = '')
 	{	
-		$file = "http://owad.de/index_en.php4";
-		$page = wp_remote_fopen($file);
+		$page = wp_remote_fopen( $url.$id );
 	
 		$pattern = "[[:print:]]+";
 		
 		preg_match( '/wordid=[0-9]{1,4}/', $page, $array );
 		$wordid = str_replace( "wordid=", "", $array[0] );
 		
-		preg_match_all( '/<a href="check.php4[^>]+>'. $pattern .'<\/a>/', $page, $array );
+		// sometimes there are white spaces and a new line at the end of the answers
+		preg_match_all( '/<a href="check.php4[^>]+>'. $pattern .'.*?[\n]?<\/a>/', $page, $array );
 		$alternatives = array( "", "", "");
 		$alternatives = $array[0];
 		
 		for( $i=0; $i<3; $i++)
+		{
+			// remove html tags
 			$alternatives[$i] = strip_tags( $alternatives[$i] );
+			// remove white spaces
+			$alternatives[$i] = trim( $alternatives[$i] );
+			
+			//$alternatives[$i] = str_replace( "", "'", $alternatives[$i] );
+			// convert into UTF8
+			$alternatives[$i] = mb_convert_encoding( $alternatives[$i], "UTF-8", "ASCII" );
+		}
 				
-		preg_match( "/See today's word: [^<]+/", $page, $array );
-		$todays_word = trim( str_replace( "See today's word:", "", $array[0] ) ); 
+		if( preg_match( "/See today's word: [^<]+/", $page, $array ) )
+			$todays_word = trim( str_replace( "See today's word:", "", $array[0] ) ); 
+		elseif ( preg_match( '/<p align="center" class="word"><br>[^<]+/', $page, $array ) )
+		{
+			//krumo( $array[0] );
+			$todays_word = trim( strip_tags( $array[0] ) );
+			}
+		else
+			$todays_word = "";
+		
 		
 		$date = $this->last_word_date();
 		

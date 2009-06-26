@@ -31,6 +31,10 @@ require_once(dirname(__FILE__) . '/settings/constants.php');
 require_once(dirname(__FILE__) . '/settings/settings.php');
 require_once(dirname(__FILE__) . '/classes/class.owad.php');
 
+// xml features
+//require_once(dirname(__FILE__) . '/classes/class.array_to_xml.php');
+//require_once(dirname(__FILE__) . '/classes/class.xml_element_extended.php');
+
 if( version_compare( $wp_version, "2.8", "<" ) )
 	require_once(dirname(__FILE__) . '/classes/class.widget.php');
 else
@@ -42,6 +46,10 @@ load_plugin_textdomain( 'owad', false, OWAD_FOLDER .'/lang' );
 // For debugging
 //require_once(dirname(__FILE__) . '/krumo/class.krumo.php' );
 
+function krumo( $data )
+{
+	echo "<pre>". print_r( $data, true) ."</pre>";
+}
 
 // Let's go
 if ( class_exists('Owad')  && !isset($owad)  )
