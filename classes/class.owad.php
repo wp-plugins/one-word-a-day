@@ -2,13 +2,10 @@
 
 /************************************
  If you're a developer stop here. 
- If you're a programmer go on. 
 ***********************************/
 
-define( "OWAD_USE_CACHE", true );
-
 class Owad
-{
+{	
 	/**
 	* PHP 4 Compatible Constructor
 	*/
@@ -23,6 +20,7 @@ class Owad
 	function __construct()
 	{	
 		global $wp_version;
+		
 		if( version_compare( $wp_version, "2.8", "<") )
 		{
 			if ( class_exists('Owad_Widget') )
@@ -33,24 +31,28 @@ class Owad
 
 		if( $this->supported_by_host () )
 		{
-			add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
+			//add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 	
-			add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
+			//add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 			
+			/*
 			global $wp_did_header;
 			if ( isset($wp_did_header) )
 				add_action('init', array( &$this, 'post_todays_word') );
+			*/
 		}	
 
+		/*
 		add_filter('screen_layout_columns', array(&$this, 'on_screen_layout_columns'), 10, 2);
 		add_action('admin_menu', array(&$this, 'on_admin_menu')); 
 		add_action('admin_post_one-word-a-day', array(&$this, 'on_save_changes'));
+		*/
 	}
 	
-	/*****************************************************************************************/
-	/*  ADMIN PAGES   ************************************************************************/
-	/*****************************************************************************************/
-	
+	/**
+	 * Load the options. If not found in the database the default settings are loaded.
+	 * @return array the options
+	 */
 	function get_options()
 	{
 		global $owad_default_options;		
@@ -60,17 +62,17 @@ class Owad
 		return $options;
 	}
 	
+	/**
+	 * Updates the options sent by the form of the admin page 'Settings->One Word A Day'.
+	 */
 	function on_save_changes() 
 	{		
-
 		//user permission check
 		if ( !current_user_can('manage_options') )
 			wp_die( __('Cheatin&#8217; uh?') );			
 
-		
 		//cross check the given referer
 		check_admin_referer('one-word-a-day');
-
 			
 		$options = $this->get_options();
 		
@@ -99,9 +101,11 @@ class Owad
 
 		//lets redirect the post request into get request (you may add additional params at the url, if you need to show save results
 		wp_redirect($_POST['_wp_http_referer']);		
-
 	}
 	
+	/**
+	 *
+	 */
 	function on_screen_layout_columns($columns, $screen) 
 	{
 
@@ -111,77 +115,26 @@ class Owad
 		return $columns;
 	}
 
+	/**
+	 * Adds admin pages and registers some callbacks.
+	 */
 	function on_admin_menu() 
 	{
 		// If the page hook gets changed, don't forget to change the link to this admin page too in the widget form
-
 		$this->pagehook = add_options_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_page'));
 		$this->pagehook_tools = add_management_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_tools'));
 		
 		//register callback gets call prior your own page gets rendered
-
 		add_action( 'load-'. $this->pagehook, array( &$this, 'on_load_page') );
 		add_action( 'admin_print_scripts-'. $this->pagehook, array( &$this, 'my_plugin_init') );
 	}
 
-	// Returns an array with the defect entries
-	function get_defect_entries()
-	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$words = $this->object_to_array( $words );
-		
-		$defects = array();
-		foreach( $words["word"] as $item )
-		{				
-			$word = $item["@attributes"]["content"];
-			$word_id = $item["@attributes"]["wordid"];
-			$alternative = $item["alternative"];
-
-			if( empty( $word ) ||
-				empty( $alternative[0] ) ||
-				empty( $alternative[1] ) ||
-				empty( $alternative[2] ) )
-				$defects["word"][] = $item;
-		}		
-		
-		return $defects;
-	}
-	
-	// Returns an array with the all the entries
-	function get_all_entries()
-	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		return $words = $this->object_to_array( $words );
-	}
-
-	function get_defect_entries_ids( $entries )
-	{
-		$defects = array();
-		foreach( $entries["word"] as $entry )
-			$defects[] = $entry["@attributes"]["wordid"];
-			
-		return $defects;
-	}
-		
-	function is_entry_defect( $word )
-	{		
-		if( empty( $word["@attributes"]["wordid"] ) ||
-			empty( $word["@attributes"]["content"] ) ||
-			empty( $word["alternative"][0] ) ||
-			empty( $word["alternative"][1] ) ||
-			empty( $word["alternative"][2] ) 
-			) return true;
-			
-		return false;	
-	}
-	
-	function array_change_key_name( $orig, $new, &$array )
-	{
-		foreach ( $array as $k => $v )
-			$return[ ( $k === $orig ) ? $new : $k ] = $v;
-		return ( array ) $return;
-	}
-
+	/**
+	 * Reloads the word data if possible
+	 * @param int word ID
+	 * @return array Container that contains a flag describing the success of the repair operation 
+	 *               and the repaired word by itself or NULL.
+	 */
 	function repair_word( $id )
 	{	
 		if( $id )
@@ -210,6 +163,9 @@ class Owad
 		return $result;
 	}
 	
+	/**
+	 * Repairs the defect entries.
+	 */
 	function action_repair_defects()
 	{		
 		$entries = $this->get_all_entries();
@@ -219,11 +175,8 @@ class Owad
 			if( $this->is_entry_defect( $entry ) )
 			{
 				$word = $this->repair_word( $entry["@attributes"]["wordid"] );
-				//krumo( $entry );
-				//krumo( $word[1] );
 				if( $word[0] )
 					$entries["word"][$key] = $word[1];
-				
 			}
 		}
 		
@@ -231,6 +184,9 @@ class Owad
 		file_put_contents( OWAD_CACHE_FILE, $entries->asXML() );
 	}
 	
+	/**
+	 * Deletes the defect entries.
+	 */
 	function action_delete_defects()
 	{
 		$defects = $this->get_defect_entries();
@@ -253,6 +209,9 @@ class Owad
 		file_put_contents( OWAD_CACHE_FILE, $good_entries->asXML() );	
 	}
 	
+	/**
+	 * Deletes the multiple entries.
+	 */
 	function action_delete_duplicates()
 	{
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
@@ -279,43 +238,10 @@ class Owad
 		file_put_contents( OWAD_CACHE_FILE, $words->asXML() );
 	}
 	
-	function array_to_xml( $arr )
-	{
-		$obj = simplexml_load_string("<?xml version='1.0' encoding='utf-8'?><words />");
-		
-		// key = 'word', val = word container
-		foreach( $arr as $key_word => $val)
-		{			
-			// key = numeric, val = container with attributes and alternative
-			foreach( $val as $key => $val)
-			{
-				$word = $obj->addChild( $key_word );
-			
-				//krumo( $val["@attributes"]);
-				foreach( $val["@attributes"] as $key => $val_att )
-					$word->addAttribute( $key, trim($val_att) );
-					
-				foreach( $val["alternative"] as $key => $val_alt )
-					$word->addChild( 'alternative', trim($val_alt) );
-			}
-		}
-		
-		return $obj;
-	}
-	
-	function object_to_array( $obj )
-	{
-		$_arr = is_object($obj) ? get_object_vars($obj) : $obj;
-		  
-		foreach ($_arr as $key => $val) 
-		{
-		  	$val = (is_array($val) || is_object($val)) ? $this->object_to_array($val) : $val;
-			$arr[$key] = $val;
-		}
-    return $arr; 
-	}
-	
-	
+	/**
+	 * This method displays the admin page "Tools->Owad Cache"
+	 * It also triggers the repair or delete functions if the action is set in $_GET
+	 */
 	function on_show_tools()	
 	{			
 		if( isset( $_GET["action"] ) )
@@ -439,7 +365,9 @@ class Owad
 		<?php
 	}
 	
-	
+	/**
+	 * This method displays the admin page "Settings->One Word A Day"
+	 */	
 	function on_show_page() 
 	{
 		//we need the global screen column value to beable to have a sidebar in WordPress 2.8
@@ -465,34 +393,22 @@ class Owad
 			<div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
 
 				<div id="side-info-column" class="inner-sidebar">
-
 					<?php do_meta_boxes($this->pagehook, 'side', $data); ?>
-
 				</div>
 
 				<div id="post-body" class="has-sidebar">
-
 					<div id="post-body-content" class="has-sidebar-content">
-						
-
 						<?php 
 							do_meta_boxes($this->pagehook, 'normal', null); 
 						?>
 						<p>
-
 							<input type="submit" value="Save Changes" class="button-primary" name="Submit"/>	
-
 						</p>
-
 					</div>
-
 				</div>
-												
-
+				
 			</div>	
-
 		</form>
-
 		</div>
 		
 
@@ -511,6 +427,9 @@ class Owad
 
 	}
 	
+	/**
+	 * Enqueues script and style resources needed by this plugin.
+	 */
 	function my_plugin_init()
 	{
 		wp_enqueue_script('post');
@@ -521,7 +440,10 @@ class Owad
 		wp_enqueue_script('media-upload');
 	}
 	
-	//will be executed if wordpress core detects this page has to be rendered
+	/**
+	 * Adds metaboxes and enqeues the required script resources.
+	 */
+	//This method is executed if wordpress core detects this page has to be rendered
 	function on_load_page() 
 	{
 		//ensure, that the needed javascripts been loaded to allow drag/drop, expand/collapse and hide/show of boxes
@@ -534,9 +456,11 @@ class Owad
 		add_meta_box('post-author-div', __('Post author'), array( &$this, 'on_post_author_meta_box'), $this->pagehook, 'side', 'core');
 		add_meta_box('owad-post-generator', 'Auto post generator', array( &$this, 'on_activate_generator_meta_box'), $this->pagehook, 'normal', 'core'); 
 		add_meta_box('owad-comment-text', 'Comment text - <a href="http://slopjong.de" target="_blank">Slopjong</a> would be glad if you left him a reference :-)', array( &$this, 'on_comment_text_meta_box'), $this->pagehook, 'normal', 'core'); 
-
 	}
 	
+	/**
+	 * Lists categories that the post ca be assigned to.
+	 */
 	function on_post_categories_meta_box() 
 	{
 		$options = $this->get_options();
@@ -573,6 +497,10 @@ class Owad
 	
 	}
 	
+	
+	/**
+	 * Lists the authors that the post can be assigned to.
+	 */
 	function on_post_author_meta_box()
 	{
 		$options = $this->get_options();
@@ -585,6 +513,9 @@ class Owad
 		echo '</select>';	
 	}
 	
+	/**
+	 * Shows an editor with the comment text that should appear in every automated post.
+	 */
 	function on_comment_text_meta_box()
 	{
 		$options = $this->get_options();
@@ -604,6 +535,9 @@ class Owad
 			wp_tiny_mce( true );
 	}
 	
+	/**
+	 * Shows a radio button to activate the auto post generator.
+	 */
 	function on_activate_generator_meta_box()
 	{
 		$options = $this->get_options();
@@ -633,24 +567,33 @@ class Owad
 	
 	/*****************************************************************************************/	
 	
+	/**
+	 * Registers the widget
+	 */
 	function widget_init()
 	{
 		register_widget('Owad_Widget');
 	}
 	
-	// Load javascript scripts and styles
+	/**
+	 * Enqueues script and style resources needed by this plugin.
+	 */
 	function enqueue_resources()
 	{
 		// scripts
 		wp_enqueue_script( 'owad', '/'. PLUGINDIR .'/'. OWAD_FOLDER .'/js/js.php', array('jquery','thickbox') );
 		wp_enqueue_script( 'owad-audio-player', '/'. PLUGINDIR .'/'. OWAD_FOLDER .'/audio-player/audio-player.js' );
-		//wp_enqueue_script( 'owad-audio-player', '/'. PLUGINDIR .'/'. OWAD_FOLDER .'/audio-player/audio-player-uncompressed.js' );		
 		
 		// styles
 		wp_enqueue_style( 'thickbox' );
 	}
 	
-	// Does what the function name already says
+	/**
+	 * Handles the shortcodes.
+	 *
+	 * @param array shortcode attributes
+	 * @return string the output of the specific shortcode
+	 */
 	function shortcode_handler( $atts )
 	{
 		global $post;
@@ -691,249 +634,24 @@ class Owad
 		}	
 	}
 
-	// Load either today's word from the cache or from the server and cache it if not done yet.
-	function get_data()
-	{
-		if ( !OWAD_USE_CACHE )
-			return $this->fetch_todays_word();
-			
-		if ( !file_exists( OWAD_CACHE_FILE ) )
-			file_put_contents( OWAD_CACHE_FILE , '<?xml version="1.0" encoding="UTF-8"?><words></words>');
 	
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$counts = count( $words );
-		
-		if ( $counts > 0 )
-		{
-			$word = $words->word[$counts - 1];
-			$last_word_date_xml = $word->attributes()->date;
-			$last_word_id_xml = $word->attributes()->wordid;
-			
-			$new_word = $this->fetch_todays_word();
-			krumo( $new_word );
-			// compare the file's last word date with the last word date
-			//if ( ( $last_word_date_xml !=  $this->last_word_date() ) )
-			if ( false ) // ( $last_word_date_xml !=  $this->last_word_date() ) )
-			//if( $last_word_id_xml != $online_word["wordid"] )
-			{
-				//$new_word = $this->fetch_todays_word();
-				$this->save_set( $new_word, $words );
-				return $new_word;
-			}	
-			
-			$last_word = $this->extract_set( $word );
-			return $last_word;
-		}
-		else
-		{
-			$set = $this->fetch_todays_word();
-			$this->save_set( $set, $words );
-			
-			return $set;
-		}
-	
-	}
-	
-	// Load the date when the last word was published
-	function fetch_word_date( $word = '' )
-	{
-		/*
-
-		//*/
-		
-		if( !empty( $word ))
-		{
-			$first_char = strtoupper( substr( $word, 0, 1 ) );
-			$page = wp_remote_fopen( "http://owad.de/owad-archive.php4?char=". $first_char );
-			$page = str_replace( "\n", "", $page );
-			preg_match( "/<b>". trim($word) ."<\/b> lernen\s+\((\d{4}\-\d{2}\-\d{2})\)\s+<br>/", $page, $array );
-			$date = $array[1];
-		}
-		else
-		{
-			// Pseudo date
-			$date = "1970-01-01";
-			
-			/*
-			$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php");
-			$time = split( '-', $now );
-			
-			// calculate the date, on the weekend there's no new word, so the date has to calculated
-			// with an offset of either one or two days
-			$offset = 0;
-			switch ( date("w", mktime( 0, 0, 0, $time[1], $time[2]) ))
-			{
-				case 0: 	$offset = 2;
-							break;
-				case 6: 	$offset = 1;
-				default:	break;
-			};
-			
-			do
-			{
-				$date = date( 'Y-m-d' , mktime( 0, 0, 0, $time[1], $time[2] - $offset ) );
-				$offset++;
-			} while( $this->is_holiday( $date ) );
-			*/
-		}
-		
-		return $date;	
-	}
-	
-	// Checks if the passed date argument is a holiday
+	/**
+	 * Checks if the passed date is a holiday
+	 * 
+	 * @param string date of the format YYYY-MM-DD
+	 * @return bool the result of the check
+	 */
 	function is_holiday( $date )
 	{
 		global $owad_holidays;		
 		return in_array( $date, $owad_holidays );
-	}
-	
-	// Convert the passed xml word object into an associative array
-	function extract_set( $word )
-	{
-		$attributes = $word->attributes();
-		
-		// in the first version of this widget the data in the xml file had white spaces.
-		// that's why trim is used here
-		$set = array(
-		  "wordid" => "". trim( $attributes->wordid ),
-		  "date" => "". trim ( $attributes->date ),
-		  "todays_word" => "". trim( $attributes->content ),
-		  "alternatives" => array( 
-			"". trim( $word->alternative[0] ),
-			"". trim( $word->alternative[1] ),
-			"". trim( $word->alternative[2] )
-			)
-		  );
-	
-		return $set;
 	}	
 	
-	// Cache the word.
-	function save_set( $set, $words )
-	{
-		extract( $set );
-	
-		$new_word = $words->addChild('word');
-		$new_word->addAttribute( 'wordid' , $wordid );
-		$new_word->addAttribute( 'date' , $date );
-		$new_word->addAttribute( 'content' , $todays_word );
-		
-		for( $i = 0; $i < 3 ; $i++)
-			$new_word->addChild( 'alternative', $alternatives[$i] );
-		
-		$file = fopen( OWAD_CACHE_FILE, 'w' );
-		fwrite( $file , $words->asXML() );
-	}
-	
-	// Retrieve the cached words
-	function fetch_archive_words()
-	{	// *
-		if ( file_exists( OWAD_CACHE_FILE ) )
-		{
-			$sets = array();
-			
-			$words = simplexml_load_file( OWAD_CACHE_FILE );
-			$counts = count( $words );
-			
-			if ( $counts >= 2)
-			{
-				for ( ; $counts > 0; $counts-- )
-				{
-					$word = $words->word[$counts-1];
-					$att = $word->attributes();
-					$sets[] = $this->extract_set( $word, $att );				
-				}
-			}
-			
-			return $sets;
-		}
-		//*/
-	}
-	
-	function fetch_todays_word()
-	{
-		$this->fetch_single_word( "http://owad.de/index_en.php4" );
-	}
-	
-	// Parses the service page to fetch the desired data for this plugin.
-	function fetch_single_word( $url, $id = '')
-	{	
-		$page = wp_remote_fopen( $url.$id );
-	
-		$pattern = "[[:print:]]+";
-		
-		preg_match( '/wordid=[0-9]{1,4}/', $page, $array );
-		$wordid = str_replace( "wordid=", "", $array[0] );
-		
-		// sometimes there are white spaces and a new line at the end of the answers
-		preg_match_all( '/<a href="check.php4[^>]+>'. $pattern .'.*?[\n]?<\/a>/', $page, $array );
-		$alternatives = array( "", "", "");
-		$alternatives = $array[0];
-		
-		for( $i=0; $i<3; $i++)
-		{			
-			// remove html tags
-			$alternatives[$i] = strip_tags( $alternatives[$i] );
-			// remove white spaces
-			$alternatives[$i] = trim( $alternatives[$i] );
-			// replace ’ by ' ( this does not work )
-			//$alternatives[$i] = preg_replace( "/’", "'", $alternatives[$i] );
-			// convert into UTF8
-			//$alternatives[$i] = mb_convert_encoding( $alternatives[$i], "UTF-8", 'ASCII' );
-		}
-				
-		if( preg_match( "/See today's word: [^<]+/", $page, $array ) )
-			$todays_word = trim( str_replace( "See today's word:", "", $array[0] ) ); 
-		elseif ( preg_match( '/<p align="center" class="word"><br>[^<]+/', $page, $array ) )
-			$todays_word = trim( strip_tags( $array[0] ) );
-		else
-			$todays_word = "";
-			
-		//$date = $this->last_word_date();
-		$date = $this->fetch_word_date( $todays_word );
-		
-		$return_value = array(
-			"wordid" => $wordid,
-			"date" => $date,
-			"todays_word" => $todays_word, 
-			"alternatives" => $alternatives 
-			);
-			
-		return $return_value;		
-	}
-	
-	function get_word_by_id( $id )
-	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$counts = count( $words );
-		
-		for ( $i=0; $i<$counts; $i++)
-		{
-			$word = $words->word[$i];
-			$attributes = $word->attributes();
-			if ( $id == $attributes[0] )
-				return Owad::extract_set( $word, $attributes );
-		}
-		
-		return NULL;
-	}
-
-	function get_word_by_date( $date )
-	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$counts = count( $words );
-		
-		for ( $i=0; $i<$counts; $i++)
-		{
-			$word = $words->word[$i];
-			
-			if ( $date == $word->attributes()->date )
-				return $this->extract_set( $word, $attributes );
-		}
-		
-		return NULL;
-	}
-	
+	/**
+	 * Checks if the required php modules are loaded.
+	 *
+	 * @return bool support
+	 */
 	function supported_by_host()
 	{
 		$support = true;
@@ -948,11 +666,18 @@ class Owad
 		return $support;
 	}
 	
-	// Outputs the question 
+	/**
+	 * Generates the shortcode handler output.
+	 *
+	 * @param SimpleXMLElement word object
+	 * @param bool control flag for hiding the question
+	 * @param int the widget ID
+	 * @return string the shortcode handler output
+	 */
 	function print_word( $word = NULL, $hide_question = false, $widget_id = '' )
 	{
 		if ( is_null( $word ) )
-			$word = $this->get_data();
+			$word = Owad_Model::get_data();
 		
 		extract( $word );
 		
@@ -1009,14 +734,19 @@ class Owad
 		return $output;
 	}
 	
-	// Outputs the select box with previous words
+	/**
+	 * Outputs the select box with previous words.
+	 *
+	 * @param int widget ID
+	 * @return string a form with the select box
+	 */
 	function print_archive_words( $widget_id = '' )
 	{
 		$output = '';
-		$sets = $this->fetch_archive_words();
+		$sets = Owad_Model::fetch_archive_words();
 	
-		$counts = count( $sets );
-		if ( $counts > 1 )
+		// outputs the select box with other words only if there are any
+		if ( !is_null( $sets ) )
 		{
 			$output .= __( 'Other words', 'owad' );
 			
@@ -1030,12 +760,12 @@ class Owad
 			{
 				// There's still a bug. Sometimes the words are cached more than once or an empty
 				// entry is saved.
-				if ( empty( $sets[$i]["wordid"] ) || in_array( $sets[$i]["wordid"], $words )  ) 
+				if ( empty( $sets[$key]["wordid"] ) || in_array( $sets[$key]["wordid"], $words )  ) 
 					continue;
 					
-				$words[] = $sets[$i]["wordid"];
+				$words[] = $sets[$key]["wordid"];
 
-				$output .=  '<option value="'. $sets[$i]["wordid"] .'">'. htmlentities( $sets[$i]["todays_word"] ) .'</option>';			
+				$output .=  '<option value="'. $sets[$key]["wordid"] .'">'. htmlentities( $sets[$key]["todays_word"] ) .'</option>';			
 			}
 			
 				
@@ -1046,6 +776,11 @@ class Owad
 		return $output;
 	}
 	
+	/**
+	 * Returns a string with a notifying text about no host support
+	 *
+	 * @return string no support text
+	 */
 	function no_support_text()
 	{
 		return 'If you can read this text this widget isn\'t supported by this blog\'s host!<br/> 
@@ -1053,7 +788,9 @@ class Owad
 				target="_blank">here</a> to help improve this widget.';
 	}
 	
-	// Create the daily post
+	/**
+	 * Posts today's word. The post body contains a shortcode with the attribute "date"
+	 */
 	function post_todays_word()
 	{
 		
@@ -1092,6 +829,11 @@ class Owad
 		}
 	}
 	
+	/**
+	 * Posts the comment.
+	 *
+	 * @param int post ID
+	 */
 	function post_comment( $post_id )
 	{
 		$options = $this->get_options();

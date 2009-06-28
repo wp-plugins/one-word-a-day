@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: 	One Word A Day
+Plugin Name: 	One Word A Day (Refactoring )
 Plugin URI: 	http://slopjong.de/2009/03/20/one-word-a-day/
 Description:  	Displays a new English word every day with a multiple choice quiz.
 Author: 		Romain Schmitz
@@ -29,12 +29,16 @@ define('OWAD_VERSION',"0.3");
 
 require_once(dirname(__FILE__) . '/settings/constants.php');
 require_once(dirname(__FILE__) . '/settings/settings.php');
+// the controller & view (post/page)
 require_once(dirname(__FILE__) . '/classes/class.owad.php');
+// the model
+require_once(dirname(__FILE__) . '/classes/class.model.php');
 
 // xml features
 //require_once(dirname(__FILE__) . '/classes/class.array_to_xml.php');
 //require_once(dirname(__FILE__) . '/classes/class.xml_element_extended.php');
 
+// the view (widget)
 if( version_compare( $wp_version, "2.8", "<" ) )
 	require_once(dirname(__FILE__) . '/classes/class.widget.php');
 else
