@@ -743,7 +743,7 @@ class Owad
 	function print_archive_words( $widget_id = '' )
 	{
 		$output = '';
-		$sets = Owad_Model::fetch_archive_words();
+		$words = Owad_Model::fetch_archive_words();
 	
 		// outputs the select box with other words only if there are any
 		if ( !is_null( $sets ) )
@@ -755,19 +755,8 @@ class Owad
 				<select style="width:100%;" name="wordid" onchange="loadData('. $widget_id .');">
 				';
 			
-			$words = array();
-			for ( $i = 0; $i<$counts; $i++ )
-			{
-				// There's still a bug. Sometimes the words are cached more than once or an empty
-				// entry is saved.
-				if ( empty( $sets[$key]["wordid"] ) || in_array( $sets[$key]["wordid"], $words )  ) 
-					continue;
-					
-				$words[] = $sets[$key]["wordid"];
-
-				$output .=  '<option value="'. $sets[$key]["wordid"] .'">'. htmlentities( $sets[$key]["todays_word"] ) .'</option>';			
-			}
-			
+			foreach ( $words["word"] as $word )
+				$output .=  '<option value="'. $word["wordid"] .'">'. htmlentities( $word["todays_word"] ) .'</option>';			
 				
 			$output .= '</select>';
 			$output .= '</form>';
