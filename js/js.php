@@ -23,18 +23,19 @@ echo <<<JAVASCRIPT
 
 			jQuery.getJSON("${url_path}word2json.php", dataToBeSent, function(json){
 				// TODO: The array structure has changed. Adapt this code!
-				var todays_word = json.todays_word;
-			
+				var todays_word = json.@attributes.content;
+				var word_id = json.@attributes.wordid;
+				
 				jQuery("#owad_todays_word_" + widget_id )[0].innerHTML = json.todays_word;
 								
-				jQuery("#owad_alt1_" + widget_id )[0].innerHTML = json.alternatives[0];
-				jQuery("#owad_alt1_" + widget_id )[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=540&width=800';
+				jQuery("#owad_alt1_" + widget_id )[0].innerHTML = json.alternative[0];
+				jQuery("#owad_alt1_" + widget_id )[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_1' + word_id +'.html?KeepThis=true&TB_iframe=true&height=540&width=800';
 								
-				jQuery("#owad_alt2_" + widget_id )[0].innerHTML = json.alternatives[1];
-				jQuery("#owad_alt2_" + widget_id )[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=540&width=800';
+				jQuery("#owad_alt2_" + widget_id )[0].innerHTML = json.alternative[1];
+				jQuery("#owad_alt2_" + widget_id )[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_3' + word_id +'.html?KeepThis=true&TB_iframe=true&height=540&width=800';
 				
-				jQuery("#owad_alt3_" + widget_id )[0].innerHTML = json.alternatives[2];
-				jQuery("#owad_alt3_" + widget_id )[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + json.wordid +'.html?KeepThis=true&TB_iframe=true&height=540&width=800';
+				jQuery("#owad_alt3_" + widget_id )[0].innerHTML = json.alternative[2];
+				jQuery("#owad_alt3_" + widget_id )[0].href = 'http://owad.slopjong.de/'+ escape( todays_word.replace( / /g, "_") ) +'_5' + word_id +'.html?KeepThis=true&TB_iframe=true&height=540&width=800';
 
 			});
 			
