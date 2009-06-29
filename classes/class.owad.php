@@ -629,9 +629,9 @@ class Owad
 		if ( is_null( $word ) )
 			$word = Owad_Model::get_newest_word();
 		
-		//extract( $word );
 		$todays_word = $word["@attributes"]["content"];
 		$alternatives = $word["alternative"];
+		$wordid = $word["@attributes"]["wordid"];
 		
 		$output .= '<div>';
 		
@@ -666,6 +666,7 @@ class Owad
 			</table>
 			</div>
 			
+			<!--
 			<object type="application/x-shockwave-flash" data="'. $player_dir .'" id="audioplayer-'. $wordid . $widget_id .'" height="24" width="190">
 			<param name="movie" value="'. $player_dir .'">
 			<param name="FlashVars" value="playerID=1&amp;titles='. urlencode( $todays_word ) .'&amp;animation=yes&amp;soundFile='. $sound_url .'">
@@ -673,7 +674,8 @@ class Owad
 			<param name="menu" value="false">
 			<param name="wmode" value="transparent">
 			</object>
-
+			-->
+			
 			<!--
 			<p id="owad-sound'. $word_id . $widget_id .'">Listen</p>
 			
