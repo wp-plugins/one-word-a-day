@@ -1,7 +1,4 @@
 ﻿<?php
-
-if( !defined("OWAD_USE_CACHE") )
-	define( "OWAD_USE_CACHE", true );
 	
 class Owad_Model
 {	
@@ -205,10 +202,6 @@ class Owad_Model
 	public static function get_defect_entries()
 	{
 		$words = self::get_cache_content();
-		/*
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$words = self::object_to_array( $words );
-		*/
 		
 		$defects = array();
 		foreach( $words as $item )
