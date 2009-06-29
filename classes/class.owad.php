@@ -204,8 +204,7 @@ class Owad
 	{			
 		if( isset( $_GET["action"] ) )
 		{
-			// TODO: filter the variable!
-			$action =  $_GET["action"];
+			$action =  strip_tags( $_GET["action"] );
 			switch( $action )
 			{
 				case 'repair':
@@ -214,7 +213,7 @@ class Owad
 					
 				case 'delete':
 					if( isset( $_GET["object"] ) )
-						$object = $_GET["object"];
+						$object = strip_tags($_GET["object"]);
 					else
 						break;
 					
