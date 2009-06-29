@@ -4,13 +4,13 @@ if( !defined("OWAD_USE_CACHE") )
 	define( "OWAD_USE_CACHE", true );
 	
 class Owad_Model
-{
+{	
 	/**
-	 * Load either today's word from the cache or from the server and cache it.
+	 * Loads newest word from the cache or from the server and caches it then.
 	 *
-	 * @return array today's word
+	 * @return array newest word
 	 */
-	function get_data()
+	function get_newest_word()
 	{
 		if ( !OWAD_USE_CACHE )
 			return self::fetch_todays_word();
@@ -48,11 +48,12 @@ class Owad_Model
 			
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
 		$words = self::object_to_array( $words );
-		
+
 		if( !isset($words["word"]) )
 			return NULL;
 		else
 			return $words["word"];
+
 	}
 	
 	/**
@@ -187,9 +188,9 @@ class Owad_Model
 	 */	
 	function get_cached_word_by_id( $id )
 	{
-		$words = self::get_cache_content()
+		$words = self::get_cache_content();
 		
-		foreach ( $words as $word )
+		foreach( $words as $word )
 			if ( $id == $word["@attributes"]["wordid"] )
 				return $word;
 		
@@ -204,7 +205,7 @@ class Owad_Model
 	 */
 	public static function get_cached_word_by_date( $date )
 	{
-		$words = self::get_cache_content()
+		$words = self::get_cache_content();
 		
 		foreach ( $words as $word )
 			if ( $date == $word["@attributes"]["date"] )
