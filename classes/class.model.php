@@ -375,31 +375,6 @@ class Owad_Model
 		
     	return $arr; 
 	}
-	
-	/**
-	 * Converts the passed xml word object into an associative array
-	 *
-	 * @param SimpleXMLElement word object
-	 * @return array array representation of the word object
-	 */
-	function extract_set( $word )
-	{
-		$attributes = $word->attributes();
-		
-		// in the first version of this widget the data in the xml file had white spaces.
-		// that's why trim is used here
-		$set = array(
-		  "wordid" => "". trim( $attributes->wordid ),
-		  "date" => "". trim ( $attributes->date ),
-		  "todays_word" => "". trim( $attributes->content ),
-		  "alternatives" => array( 
-			"". trim( $word->alternative[0] ),
-			"". trim( $word->alternative[1] ),
-			"". trim( $word->alternative[2] )
-			)
-		  );
-	
-		return $set;
-	}
+
 }
 ?>
