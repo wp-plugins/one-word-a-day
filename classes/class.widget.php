@@ -54,9 +54,7 @@ class Owad_Widget
 	}
 	
 	function backend()
-	{
-
-		
+	{		
 		global $owad_default_options;		
 		$options = get_option('owad');
 		$options = wp_parse_args( $options, $owad_default_options );		

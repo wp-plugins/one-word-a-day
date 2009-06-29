@@ -135,8 +135,8 @@ class Owad
 	 */
 	function repair_word( &$word )
 	{	
-		if( $word["@attributes"]["wordid"] )
-			$word = Owad_Data::fetch_single_word( "http://owad.de/owad-archive-quiz.php4?id=$id" );
+		if( $id = $word["@attributes"]["wordid"] )
+			$word = Owad_Model::fetch_single_word( $id );
 	}
 	
 	/**
@@ -144,11 +144,11 @@ class Owad
 	 */
 	function action_repair_defects()
 	{		
-		$cached_words = Owad_Data::get_cache_content();
+		$cached_words = Owad_Model::get_cache_content();
 		
 		foreach( $cached_words as $key => $cached_word )
 		{
-			if( Owad_Data::is_entry_defect( $cached_word ) )
+			if( Owad_Model::is_entry_defect( $cached_word ) )
 				$this->repair_word( $cached_word );
 		}
 		
@@ -594,7 +594,7 @@ class Owad
 			if ( preg_match( "/[\d]{4,4}-[\d]{2,2}-[\d]{2,2}/", $date, $date ) )
 			{
 				$this->post_comment( $post->ID );
-				$word = Owad_Data::get_cached_word_by_date( $date[0] );
+				$word = Owad_Model::get_cached_word_by_date( $date[0] );
 				return $this->print_word( $word, $hide_question );
 			}
 		}

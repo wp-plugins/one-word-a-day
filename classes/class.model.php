@@ -10,7 +10,7 @@ class Owad_Model
 	 *
 	 * @return array newest word
 	 */
-	function get_newest_word()
+	public static function get_newest_word()
 	{
 		if ( !OWAD_USE_CACHE )
 			return self::fetch_todays_word();
@@ -20,7 +20,7 @@ class Owad_Model
 		if ( ! is_null($words) )
 		{
 			$word = array_pop( $words );
-			
+
 			if ( $word['@attributes']['date'] != self::fetch_word_date() )
 			{
 				$word = self::fetch_todays_word();
@@ -61,6 +61,7 @@ class Owad_Model
 	 *
 	 * @param array word to be cached
 	 */
+	// TODO: Is it possible to just get the reference?
 	private static function cache_word( $word )
 	{
 		$words["word"] = self::get_cache_content();
@@ -72,46 +73,23 @@ class Owad_Model
 	/**
 	 * Load the date of a "today's word".
 	 *
-	 * @param string given "today's word" (it might be an older one)
+	 * @param string given "today's word". If the string is empty the newest word's date will be fetched.
 	 * @return string a date with the format YYYY-MM-DD
 	 */
-	private static function fetch_word_date( $word = '' )
-	{		
-		if( !empty( $word ))
+	protected static function fetch_word_date( $word = '' )
+	{	
+		if( empty( $word ))
 		{
-			$first_char = strtoupper( substr( $word, 0, 1 ) );
-			$page = wp_remote_fopen( "http://owad.de/owad-archive.php4?char=". $first_char );
-			$page = str_replace( "\n", "", $page );
-			preg_match( "/<b>". trim($word) ."<\/b> lernen\s+\((\d{4}\-\d{2}\-\d{2})\)\s+<br>/", $page, $array );
-			$date = $array[1];
+			// load the newest word from the server
+			$newest_word = self::fetch_todays_word();
+			$word = $newest_word["@attributes"]["content"];
 		}
-		else
-		{
-			// Pseudo date
-			$date = "1970-01-01";
 			
-			/*
-			$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php");
-			$time = split( '-', $now );
-			
-			// calculate the date, on the weekend there's no new word, so the date has to calculated
-			// with an offset of either one or two days
-			$offset = 0;
-			switch ( date("w", mktime( 0, 0, 0, $time[1], $time[2]) ))
-			{
-				case 0: 	$offset = 2;
-							break;
-				case 6: 	$offset = 1;
-				default:	break;
-			};
-			
-			do
-			{
-				$date = date( 'Y-m-d' , mktime( 0, 0, 0, $time[1], $time[2] - $offset ) );
-				$offset++;
-			} while( $this->is_holiday( $date ) );
-			*/
-		}
+		$first_char = strtoupper( substr( $word, 0, 1 ) );
+		$page = wp_remote_fopen( "http://owad.de/owad-archive.php4?char=". $first_char );
+		$page = str_replace( "\n", "", $page );
+		preg_match( "/<b>". trim($word) ."<\/b> lernen\s+\((\d{4}\-\d{2}\-\d{2})\)\s+<br>/", $page, $array );
+		$date = $array[1];
 		
 		return $date;	
 	}
@@ -124,7 +102,7 @@ class Owad_Model
 	 */
 	private static function fetch_todays_word()
 	{
-		return $this->fetch_single_word( "http://owad.de/index_en.php4" );
+		return self::fetch_single_word();
 	}
 	
 	/**
@@ -134,8 +112,14 @@ class Owad_Model
 	 * @param string word ID
 	 * @return array word
 	 */
-	private static function fetch_single_word( $url, $id = '')
+	public static function fetch_single_word( $id = '')
 	{	
+		// if no ID is given fetch the newest word
+		if( empty( $id ) )
+			$url = "http://owad.de/index_en.php4";
+		else
+			$url = "http://owad.de/owad-archive-quiz.php4?id=";
+	
 		$page = wp_remote_fopen( $url.$id );
 	
 		$pattern = "[[:print:]]+";
@@ -172,8 +156,8 @@ class Owad_Model
 		$word = array(
 			"@attributes" => array(			
 				"wordid" => $wordid,
-				"date" => mb_convert_encoding( $date ),
-				"content" => mb_convert_encoding($todays_word) ),
+				"date" => mb_convert_encoding( $date, "UTF-8" ),
+				"content" => mb_convert_encoding($todays_word, "UTF-8") ),
 			"alternative" => $alternatives 
 			);
 			
@@ -186,7 +170,7 @@ class Owad_Model
 	 * @param int word ID
 	 * @return array | NULL word array
 	 */	
-	function get_cached_word_by_id( $id )
+	public static function get_cached_word_by_id( $id )
 	{
 		$words = self::get_cache_content();
 		
@@ -220,21 +204,23 @@ class Owad_Model
 	 */
 	public static function get_defect_entries()
 	{
+		$words = self::get_cache_content();
+		/*
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$words = $this->object_to_array( $words );
+		$words = self::object_to_array( $words );
+		*/
 		
 		$defects = array();
-		foreach( $words["word"] as $item )
+		foreach( $words as $item )
 		{				
 			$word = $item["@attributes"]["content"];
-			$word_id = $item["@attributes"]["wordid"];
 			$alternative = $item["alternative"];
 
 			if( empty( $word ) ||
 				empty( $alternative[0] ) ||
 				empty( $alternative[1] ) ||
 				empty( $alternative[2] ) )
-				$defects["word"][] = $item;
+				$defects[] = $item;
 		}		
 		
 		return $defects;
@@ -248,7 +234,7 @@ class Owad_Model
 	public static function get_defect_entries_ids( $entries )
 	{
 		$defects = array();
-		foreach( $entries["word"] as $entry )
+		foreach( $entries as $entry )
 			$defects[] = $entry["@attributes"]["wordid"];
 			
 		return $defects;
