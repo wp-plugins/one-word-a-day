@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 /************************************
  If you're a developer stop here. 
@@ -152,23 +152,6 @@ class Owad
 	{
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
 		return $words = $this->object_to_array( $words );
-		/*
-		$defects = array();
-		foreach( $words["word"] as $item )
-		{				
-			$word = $item["@attributes"]["content"];
-			$word_id = $item["@attributes"]["wordid"];
-			$alternative = $item["alternative"];
-
-			if( empty( $word ) ||
-				empty( $alternative[0] ) ||
-				empty( $alternative[1] ) ||
-				empty( $alternative[2] ) )
-				$defects["word"][] = $item;
-		}		
-		
-		return $defects;
-		*/
 	}
 
 	function get_defect_entries_ids( $entries )
@@ -181,9 +164,7 @@ class Owad
 	}
 		
 	function is_entry_defect( $word )
-	{
-		//krumo( $word );
-		
+	{		
 		if( empty( $word["@attributes"]["wordid"] ) ||
 			empty( $word["@attributes"]["content"] ) ||
 			empty( $word["alternative"][0] ) ||
@@ -191,50 +172,63 @@ class Owad
 			empty( $word["alternative"][2] ) 
 			) return true;
 			
-		return false;
-	
+		return false;	
 	}
 	
+	function array_change_key_name( $orig, $new, &$array )
+	{
+		foreach ( $array as $k => $v )
+			$return[ ( $k === $orig ) ? $new : $k ] = $v;
+		return ( array ) $return;
+	}
+
 	function repair_word( $id )
 	{	
-		//echo $id ."<br>";
-		//return;
-		$word = $this->fetch_single_word( "http://owad.de/owad-archive-quiz.php4?id=$id" );
-		echo "http://owad.de/owad-archive-quiz.php4?id=$id";
-		krumo( $word );
-		return;
-		//return $return_value;		
-		return;
-		$result[0] = false;
-		$result[1] = $word;
+		if( $id )
+		{	
+			$result[0] = true;
+			$fetched_word = $this->fetch_single_word( "http://owad.de/owad-archive-quiz.php4?id=$id" );
+			//$word = $this->array_change_key_name( 'alternatives', 'alternative', $fetched_word );
+			//krumo( $word );
+			
+			$repaired_word = array();
+			$repaired_word["@attributes"]["wordid"] = mb_convert_encoding( $fetched_word["wordid"], "UTF-8" );
+			$repaired_word["@attributes"]["date"] = mb_convert_encoding( $fetched_word["date"], "UTF-8" );
+			$repaired_word["@attributes"]["content"] = mb_convert_encoding( $fetched_word["todays_word"], "UTF-8" );
+			
+			for( $i=0; $i<3; $i++ )
+				$repaired_word["alternative"][$i] = mb_convert_encoding( $fetched_word["alternatives"][$i], "UTF-8" );
+				
+			$result[1] = $repaired_word;
+		}
+		else
+		{
+			$result[0] = false;
+			$result[1] = null;
+		}
+		
 		return $result;
 	}
 	
 	function action_repair_defects()
-	{
-		//$defects = $this->get_defect_entries();
-		//$i = 0;
-		
+	{		
 		$entries = $this->get_all_entries();
 		
 		foreach( $entries["word"] as $key => $entry )
 		{
 			if( $this->is_entry_defect( $entry ) )
 			{
-				//echo  $entry["@attributes"]["wordid"] ;
-				//krumo( $entry["@attributes"]);
-				$word = $this->repair_word( $entry["@attributes"]["wordid"] );//echo $key .'<br>';
-				//if( $i++ == 4)
-				//	break;
-				//krumo( $word );
+				$word = $this->repair_word( $entry["@attributes"]["wordid"] );
+				//krumo( $entry );
+				//krumo( $word[1] );
+				if( $word[0] )
+					$entries["word"][$key] = $word[1];
 				
 			}
 		}
 		
-		//$entries["word"] = $defects;
-		
-		//$defects = $this->get_defect_entries_ids( $defects );
-		//krumo( $defects );
+		$entries = $this->array_to_xml( $entries );
+		file_put_contents( OWAD_CACHE_FILE, $entries->asXML() );
 	}
 	
 	function action_delete_defects()
@@ -323,8 +317,7 @@ class Owad
 	
 	
 	function on_show_tools()	
-	{	
-	
+	{			
 		if( isset( $_GET["action"] ) )
 		{
 			// TODO: filter the variable!
@@ -449,23 +442,16 @@ class Owad
 	
 	function on_show_page() 
 	{
-
 		//we need the global screen column value to beable to have a sidebar in WordPress 2.8
-
 		global $screen_layout_columns;
-
 		?>
 		
 
 		<div id="one-word-a-day" class="wrap">
-
 		<?php screen_icon('options-general'); ?>
-
 		<h2>One Word A Day</h2>
 
 		<form action="admin-post.php" method="post">
-		
-
 			<?php 
 				// this nonce field is used for the referer check
 				wp_nonce_field('one-word-a-day');
@@ -475,8 +461,6 @@ class Owad
 			?>		
 
 			<input type="hidden" name="action" value="one-word-a-day" />
-
-		
 
 			<div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
 
@@ -513,26 +497,15 @@ class Owad
 		
 
 		<script type="text/javascript">
-
 			//<![CDATA[
-
 			jQuery(document).ready( function($) {
-
 				// close postboxes that should be closed
-
 				$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-
 				// postboxes setup
-
 				postboxes.add_postbox_toggles('<?php echo $this->pagehook; ?>');
-
 			});
-
 			//]]>
-
 		</script>
-
-		
 
 		<?php
 
@@ -549,19 +522,12 @@ class Owad
 	}
 	
 	//will be executed if wordpress core detects this page has to be rendered
-
 	function on_load_page() 
 	{
-
 		//ensure, that the needed javascripts been loaded to allow drag/drop, expand/collapse and hide/show of boxes
-
 		wp_enqueue_script('common');
-
 		wp_enqueue_script('wp-lists');
-
 		wp_enqueue_script('postbox');
-
-
 
 		add_meta_box('categorydiv', __('Categories'), array( &$this, 'on_post_categories_meta_box'), $this->pagehook, 'side', 'core');
 
@@ -741,11 +707,16 @@ class Owad
 		{
 			$word = $words->word[$counts - 1];
 			$last_word_date_xml = $word->attributes()->date;
+			$last_word_id_xml = $word->attributes()->wordid;
 			
+			$new_word = $this->fetch_todays_word();
+			krumo( $new_word );
 			// compare the file's last word date with the last word date
-			if ( ( $last_word_date_xml != $this->last_word_date() ) )
+			//if ( ( $last_word_date_xml !=  $this->last_word_date() ) )
+			if ( false ) // ( $last_word_date_xml !=  $this->last_word_date() ) )
+			//if( $last_word_id_xml != $online_word["wordid"] )
 			{
-				$new_word = $this->fetch_todays_word();
+				//$new_word = $this->fetch_todays_word();
 				$this->save_set( $new_word, $words );
 				return $new_word;
 			}	
@@ -764,27 +735,47 @@ class Owad
 	}
 	
 	// Load the date when the last word was published
-	function last_word_date()
+	function fetch_word_date( $word = '' )
 	{
-		$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php");
-		$time = split( '-', $now );
+		/*
+
+		//*/
 		
-		// calculate the date, on the weekend there's no new word, so the date has to calculated
-		// with an offset of either one or two days
-		$offset = 0;
-		switch ( date("w", mktime( 0, 0, 0, $time[1], $time[2]) ))
+		if( !empty( $word ))
 		{
-			case 0: 	$offset = 2;
-						break;
-			case 6: 	$offset = 1;
-			default:	break;
-		};
-		
-		do
+			$first_char = strtoupper( substr( $word, 0, 1 ) );
+			$page = wp_remote_fopen( "http://owad.de/owad-archive.php4?char=". $first_char );
+			$page = str_replace( "\n", "", $page );
+			preg_match( "/<b>". trim($word) ."<\/b> lernen\s+\((\d{4}\-\d{2}\-\d{2})\)\s+<br>/", $page, $array );
+			$date = $array[1];
+		}
+		else
 		{
-			$date = date( 'Y-m-d' , mktime( 0, 0, 0, $time[1], $time[2] - $offset ) );
-			$offset++;
-		} while( $this->is_holiday( $date ) );
+			// Pseudo date
+			$date = "1970-01-01";
+			
+			/*
+			$now = wp_remote_fopen("http://owad.slopjong.de/cache_time.php");
+			$time = split( '-', $now );
+			
+			// calculate the date, on the weekend there's no new word, so the date has to calculated
+			// with an offset of either one or two days
+			$offset = 0;
+			switch ( date("w", mktime( 0, 0, 0, $time[1], $time[2]) ))
+			{
+				case 0: 	$offset = 2;
+							break;
+				case 6: 	$offset = 1;
+				default:	break;
+			};
+			
+			do
+			{
+				$date = date( 'Y-m-d' , mktime( 0, 0, 0, $time[1], $time[2] - $offset ) );
+				$offset++;
+			} while( $this->is_holiday( $date ) );
+			*/
+		}
 		
 		return $date;	
 	}
@@ -880,29 +871,26 @@ class Owad
 		$alternatives = $array[0];
 		
 		for( $i=0; $i<3; $i++)
-		{
+		{			
 			// remove html tags
 			$alternatives[$i] = strip_tags( $alternatives[$i] );
 			// remove white spaces
 			$alternatives[$i] = trim( $alternatives[$i] );
-			
-			//$alternatives[$i] = str_replace( "", "'", $alternatives[$i] );
+			// replace ’ by ' ( this does not work )
+			//$alternatives[$i] = preg_replace( "/’", "'", $alternatives[$i] );
 			// convert into UTF8
-			$alternatives[$i] = mb_convert_encoding( $alternatives[$i], "UTF-8", "ASCII" );
+			//$alternatives[$i] = mb_convert_encoding( $alternatives[$i], "UTF-8", 'ASCII' );
 		}
 				
 		if( preg_match( "/See today's word: [^<]+/", $page, $array ) )
 			$todays_word = trim( str_replace( "See today's word:", "", $array[0] ) ); 
 		elseif ( preg_match( '/<p align="center" class="word"><br>[^<]+/', $page, $array ) )
-		{
-			//krumo( $array[0] );
 			$todays_word = trim( strip_tags( $array[0] ) );
-			}
 		else
 			$todays_word = "";
-		
-		
-		$date = $this->last_word_date();
+			
+		//$date = $this->last_word_date();
+		$date = $this->fetch_word_date( $todays_word );
 		
 		$return_value = array(
 			"wordid" => $wordid,
@@ -963,11 +951,8 @@ class Owad
 	// Outputs the question 
 	function print_word( $word = NULL, $hide_question = false, $widget_id = '' )
 	{
-
-		if ( NULL == $word )
-		{
+		if ( is_null( $word ) )
 			$word = $this->get_data();
-		}
 		
 		extract( $word );
 		
