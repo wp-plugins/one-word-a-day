@@ -622,7 +622,7 @@ class Owad
 			if ( preg_match( "/[\d]{4,4}-[\d]{2,2}-[\d]{2,2}/", $date, $date ) )
 			{
 				$this->post_comment( $post->ID );
-				$word = $this->get_word_by_date( $date[0] );
+				$word = Owad_Data::get_cached_word_by_date( $date[0] );
 				return $this->print_word( $word, $hide_question );
 			}
 		}

@@ -191,17 +191,17 @@ class Owad_Model
 		else
 			$todays_word = "";
 			
-		//$date = $this->last_word_date();
 		$date = $this->fetch_word_date( $todays_word );
 		
-		$return_value = array(
-			"wordid" => $wordid,
-			"date" => $date,
-			"todays_word" => $todays_word, 
-			"alternatives" => $alternatives 
+		$word = array(
+			"@attributes" => array(			
+				"wordid" => $wordid,
+				"date" => $date,
+				"content" => $todays_word ),
+			"alternative" => $alternatives 
 			);
 			
-		return $return_value;		
+		return $word;		
 	}
 
 	/**
@@ -210,18 +210,13 @@ class Owad_Model
 	 * @param int word ID
 	 * @return array | NULL word array
 	 */	
-	function get_word_by_id( $id )
+	function get_cached_word_by_id( $id )
 	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$counts = count( $words );
+		$words = self::get_cache_content()
 		
-		for ( $i=0; $i<$counts; $i++)
-		{
-			$word = $words->word[$i];
-			$attributes = $word->attributes();
-			if ( $id == $attributes[0] )
-				return Owad::extract_set( $word, $attributes );
-		}
+		foreach ( $words as $word )
+			if ( $id == $word["@attributes"]["wordid"] )
+				return $word;
 		
 		return NULL;
 	}
@@ -232,18 +227,13 @@ class Owad_Model
 	 * @param string Date with the format YYYY-MM-DD
 	 * @return array | NULL word array
 	 */
-	function get_word_by_date( $date )
+	function get_cached_word_by_date( $date )
 	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$counts = count( $words );
+		$words = self::get_cache_content()
 		
-		for ( $i=0; $i<$counts; $i++)
-		{
-			$word = $words->word[$i];
-			
-			if ( $date == $word->attributes()->date )
-				return $this->extract_set( $word, $attributes );
-		}
+		foreach ( $words as $word )
+			if ( $date == $word["@attributes"]["date"] )
+				return $word;
 		
 		return NULL;
 	}
