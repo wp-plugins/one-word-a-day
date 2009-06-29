@@ -130,37 +130,13 @@ class Owad
 	}
 
 	/**
-	 * Reloads the word data if possible
-	 * @param int word ID
-	 * @return array Container that contains a flag describing the success of the repair operation 
-	 *               and the repaired word by itself or NULL.
+	 * Reloads the word data if possible.
+	 * @param array word
 	 */
-	function repair_word( $id )
+	function repair_word( &$word )
 	{	
-		if( $id )
-		{	
-			$result[0] = true;
-			$fetched_word = $this->fetch_single_word( "http://owad.de/owad-archive-quiz.php4?id=$id" );
-			//$word = $this->array_change_key_name( 'alternatives', 'alternative', $fetched_word );
-			//krumo( $word );
-			
-			$repaired_word = array();
-			$repaired_word["@attributes"]["wordid"] = mb_convert_encoding( $fetched_word["wordid"], "UTF-8" );
-			$repaired_word["@attributes"]["date"] = mb_convert_encoding( $fetched_word["date"], "UTF-8" );
-			$repaired_word["@attributes"]["content"] = mb_convert_encoding( $fetched_word["todays_word"], "UTF-8" );
-			
-			for( $i=0; $i<3; $i++ )
-				$repaired_word["alternative"][$i] = mb_convert_encoding( $fetched_word["alternatives"][$i], "UTF-8" );
-				
-			$result[1] = $repaired_word;
-		}
-		else
-		{
-			$result[0] = false;
-			$result[1] = null;
-		}
-		
-		return $result;
+		if( $word["@attributes"]["wordid"] )
+			$word = Owad_Data::fetch_single_word( "http://owad.de/owad-archive-quiz.php4?id=$id" );
 	}
 	
 	/**
@@ -173,16 +149,11 @@ class Owad
 		foreach( $cached_words as $key => $cached_word )
 		{
 			if( Owad_Data::is_entry_defect( $cached_word ) )
-			{
-				// TODO: This code might not work because other methods got refactored.
-				$word = $this->repair_word( $cached_word["@attributes"]["wordid"] );
-				if( $word[0] )
-					$entries["word"][$key] = $word[1];
-			}
+				$this->repair_word( $cached_word );
 		}
 		
-		$entries = $this->array_to_xml( $entries );
-		file_put_contents( OWAD_CACHE_FILE, $entries->asXML() );
+		$modified_words = $this->array_to_xml( $cached_words );
+		file_put_contents( OWAD_CACHE_FILE, $modified_words->asXML() );
 	}
 	
 	/**

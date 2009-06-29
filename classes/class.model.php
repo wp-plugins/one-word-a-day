@@ -56,17 +56,26 @@ class Owad_Model
 	}
 	
 	/**
+	 * Caches the word.
+	 *
+	 * @param array word to be cached
+	 */
+	private static function cache_word( $word )
+	{
+		$words["word"] = self::get_cache_content();
+		array_push( $words["word"], $word );
+		$words = self::array_to_xml( $words );
+		file_put_contents( OWAD_CACHE_FILE, $words->asXML() );
+	}
+
+	/**
 	 * Load the date of a "today's word".
 	 *
 	 * @param string given "today's word" (it might be an older one)
 	 * @return string a date with the format YYYY-MM-DD
 	 */
 	private static function fetch_word_date( $word = '' )
-	{
-		/*
-
-		//*/
-		
+	{		
 		if( !empty( $word ))
 		{
 			$first_char = strtoupper( substr( $word, 0, 1 ) );
@@ -104,19 +113,6 @@ class Owad_Model
 		}
 		
 		return $date;	
-	}
-	
-	/**
-	 * Caches the word.
-	 *
-	 * @param array word to be cached
-	 */
-	private static function cache_word( $word )
-	{
-		$words["word"] = self::get_cache_content();
-		array_push( $words["word"], $word );
-		$words = self::array_to_xml( $words );
-		file_put_contents( OWAD_CACHE_FILE, $words->asXML() );
 	}
 	
 	/**
@@ -160,23 +156,23 @@ class Owad_Model
 			// replace ’ by ' ( this does not work )
 			//$alternatives[$i] = preg_replace( "/’", "'", $alternatives[$i] );
 			// convert into UTF8
-			//$alternatives[$i] = mb_convert_encoding( $alternatives[$i], "UTF-8", 'ASCII' );
+			$alternatives[$i] = mb_convert_encoding( $alternatives[$i], "UTF-8" );
 		}
 				
 		if( preg_match( "/See today's word: [^<]+/", $page, $array ) )
-			$todays_word = trim( str_replace( "See today's word:", "", $array[0] ) ); 
+			$todays_word = trim( str_replace( "See today's word:", "", $array[0] )); 
 		elseif ( preg_match( '/<p align="center" class="word"><br>[^<]+/', $page, $array ) )
-			$todays_word = trim( strip_tags( $array[0] ) );
+			$todays_word = trim( strip_tags( $array[0] ));
 		else
 			$todays_word = "";
 			
-		$date = $this->fetch_word_date( $todays_word );
+		$date = self::fetch_word_date( $todays_word );
 		
 		$word = array(
 			"@attributes" => array(			
 				"wordid" => $wordid,
-				"date" => $date,
-				"content" => $todays_word ),
+				"date" => mb_convert_encoding( $date ),
+				"content" => mb_convert_encoding($todays_word) ),
 			"alternative" => $alternatives 
 			);
 			
