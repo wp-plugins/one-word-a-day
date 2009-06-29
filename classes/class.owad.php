@@ -35,11 +35,11 @@ class Owad
 	
 			add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 			
-			/*
+			//*
 			global $wp_did_header;
 			if ( isset($wp_did_header) )
 				add_action('init', array( &$this, 'post_todays_word') );
-			*/
+			//*/
 		}	
 
 		//*
@@ -739,19 +739,16 @@ class Owad
 	 */
 	function post_todays_word()
 	{
-		
 		if ( ! is_admin() )
 		{
-			global $owad_default_options;
-			$options = get_option('owad');
-			$options = wp_parse_args( $options, $owad_default_options );
+			$options = $this->get_options();
 			if ( empty( $options["owad_post_category"] ))
 				$options["owad_post_category"] = $owad_default_options["owad_post_category"];
 			
-			$word = $this->get_data();
+			$word = Owad_Model::get_newest_word();
 		
 			// check if the word was posted
-			if ( $word["wordid"] <= $options["owad_last_word_posted"] )
+			if ( $word["@attributes"]["wordid"] <= $options["owad_last_word_posted"] )
 				return;
 				
 			$options["owad_last_word_posted"] = $word["wordid"];
@@ -759,8 +756,8 @@ class Owad
 			
 			// post today's word
 			$post_id = wp_insert_post(array(
-				'post_title'     => 'What does "'. $word["todays_word"] .'" mean?',
-				'post_content'   => '[owad date="'. $word["date"] .'"]',
+				'post_title'     => 'What does "'. $word["@attributes"]["content"] .'" mean?',
+				'post_content'   => '[owad date="'. $word["@attributes"]["date"] .'"]',
 				'post_status'    => 'publish', // changing it to draft may cause problems
 				'post_type'      => 'post', // it's not a page ;-)
 				'post_author'    => $options['owad_post_author'],
