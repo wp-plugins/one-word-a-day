@@ -120,27 +120,6 @@ class Owad_Model
 	}
 	
 	/**
-	 * Retrieves the cached words.
-	 *
-	 * @return array | null cached words or null if there's only one word
-	 */
-	function fetch_archive_words()
-	{
-		if ( file_exists( OWAD_CACHE_FILE ) )
-		{
-			$sets = array();
-			
-			$words = simplexml_load_file( OWAD_CACHE_FILE );
-			$words = self::object_to_array( $words );
-			
-			if( count( $words ) >= 2 )
-				return $words;
-			else
-				return NULL;
-		}
-	}
-	
-	/**
 	 * Fetches today's word.
 	 *
 	 * @return array today's word
@@ -227,7 +206,7 @@ class Owad_Model
 	 * @param string Date with the format YYYY-MM-DD
 	 * @return array | NULL word array
 	 */
-	function get_cached_word_by_date( $date )
+	public static function get_cached_word_by_date( $date )
 	{
 		$words = self::get_cache_content()
 		
@@ -242,7 +221,7 @@ class Owad_Model
 	 * Return all defect entries
 	 * @return array defect entries
 	 */
-	function get_defect_entries()
+	public static function get_defect_entries()
 	{
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
 		$words = $this->object_to_array( $words );
@@ -268,7 +247,7 @@ class Owad_Model
 	 * Returns all entries
 	 * @return array all entries
 	 */
-	function get_all_entries()
+	public static function get_all_entries()
 	{
 		$words = simplexml_load_file( OWAD_CACHE_FILE );
 		return $words = $this->object_to_array( $words );
@@ -279,7 +258,7 @@ class Owad_Model
 	 * @param array defect entries
 	 * @return array word IDs
 	 */
-	function get_defect_entries_ids( $entries )
+	public static function get_defect_entries_ids( $entries )
 	{
 		$defects = array();
 		foreach( $entries["word"] as $entry )
@@ -293,7 +272,7 @@ class Owad_Model
 	 * @param array word
 	 * @return bool the result of the check
 	 */
-	function is_entry_defect( $word )
+	public static function is_entry_defect( $word )
 	{		
 		if( empty( $word["@attributes"]["wordid"] ) ||
 			empty( $word["@attributes"]["content"] ) ||
@@ -312,7 +291,7 @@ class Owad_Model
 	 * @param array reference of the array
 	 * @return array array with changed key if it was found 
 	 */
-	function array_change_key_name( $orig, $new, &$array )
+	public static function array_change_key_name( $orig, $new, &$array )
 	{
 		foreach ( $array as $k => $v )
 			$return[ ( $k === $orig ) ? $new : $k ] = $v;
@@ -324,7 +303,7 @@ class Owad_Model
 	 * @param array array with all the entries
 	 * @return SimpleXMLElement | false XML object or an error
 	 */
-	function array_to_xml( $arr )
+	private static function array_to_xml( $arr )
 	{
 		$obj = simplexml_load_string("<?xml version='1.0' encoding='utf-8'?><words />");
 		
