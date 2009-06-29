@@ -310,6 +310,17 @@ class Owad_Model
 		
     	return $arr; 
 	}
-
+	
+	/**
+	 * Saves the words.
+	 *
+	 * @param array the words
+	 */
+	public static function save_words( &$words )
+	{
+		$new_words["word"] = $words;
+		$new_words = self::array_to_xml( $new_words );
+		file_put_contents( OWAD_CACHE_FILE, $new_words->asXML() );
+	}
 }
 ?>

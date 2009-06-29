@@ -31,9 +31,9 @@ class Owad
 
 		if( $this->supported_by_host () )
 		{
-			//add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
+			add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
 	
-			//add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
+			add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 			
 			/*
 			global $wp_did_header;
@@ -42,11 +42,11 @@ class Owad
 			*/
 		}	
 
-		/*
+		//*
 		add_filter('screen_layout_columns', array(&$this, 'on_screen_layout_columns'), 10, 2);
 		add_action('admin_menu', array(&$this, 'on_admin_menu')); 
 		add_action('admin_post_one-word-a-day', array(&$this, 'on_save_changes'));
-		*/
+		//*/
 	}
 	
 	/**
@@ -136,7 +136,7 @@ class Owad
 	function repair_word( &$word )
 	{	
 		if( $id = $word["@attributes"]["wordid"] )
-			$word = Owad_Model::fetch_single_word( $id );
+			$word =& Owad_Model::fetch_single_word( $id );
 	}
 	
 	/**
@@ -144,16 +144,15 @@ class Owad
 	 */
 	function action_repair_defects()
 	{		
-		$cached_words = Owad_Model::get_cache_content();
+		$words = Owad_Model::get_cache_content();
 		
-		foreach( $cached_words as $key => $cached_word )
+		foreach( $words as &$word )
 		{
-			if( Owad_Model::is_entry_defect( $cached_word ) )
-				$this->repair_word( $cached_word );
+			if( Owad_Model::is_entry_defect( $word ) )
+				$this->repair_word( $word );
 		}
-		
-		$modified_words = $this->array_to_xml( $cached_words );
-		file_put_contents( OWAD_CACHE_FILE, $modified_words->asXML() );
+
+		Owad_Model::save_words( $words );
 	}
 	
 	/**
@@ -161,24 +160,20 @@ class Owad
 	 */
 	function action_delete_defects()
 	{
-		$defects = $this->get_defect_entries();
-		$defects = $this->get_defect_entries_ids( $defects );
-		
-		$entries = simplexml_load_file( OWAD_CACHE_FILE );
-		$entries = $this->object_to_array( $entries );
-		
+		$defects = Owad_Model::get_defect_entries();
+		$defects = Owad_Model::get_defect_entries_ids( $defects );
+		$entries = Owad_Model::get_cache_content();
 		$good_entries = array();
 		
-		foreach( $entries["word"] as $entry )
+		foreach( $entries as $entry )
 		{
 			if( in_array( $entry["@attributes"]["wordid"], $defects ) )
 				continue;
 				
-			$good_entries["word"][] = $entry;
+			$good_entries[] = $entry;
 		}
 		
-		$good_entries = $this->array_to_xml( $good_entries );
-		file_put_contents( OWAD_CACHE_FILE, $good_entries->asXML() );	
+		Owad_Model::save_words( $good_entries );
 	}
 	
 	/**
@@ -186,10 +181,7 @@ class Owad
 	 */
 	function action_delete_duplicates()
 	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$words = (array) $words;
-		$words = $this->object_to_array( $words );
-		$words = $words["word"];
+		$words = Owad_Model::get_cache_content();
 		
 		// The new sets to be stored
 		$no_duplicates = array();
@@ -203,11 +195,10 @@ class Owad
 			else
 				continue;
 			
-			$no_duplicates["word"][] = $word;
+			$no_duplicates[] = $word;
 		}
 		
-		$words = $this->array_to_xml( $no_duplicates );
-		file_put_contents( OWAD_CACHE_FILE, $words->asXML() );
+		Owad_Model::save_words( $no_duplicates );
 	}
 	
 	/**
@@ -268,29 +259,21 @@ class Owad
 			<thead><tr><th width="200">Word</th><th>Choices</th></tr></thead>
 			<tbody><?php
 			
-				$words = (array) simplexml_load_file( OWAD_CACHE_FILE );
-				$words = (array) $words["word"];
+				$words = Owad_Model::get_cache_content();
 				$words = array_reverse( $words );
 				
-				//echo "<pre>". print_r( $words, true ) ."</pre>";
 				$defects = array();
 					foreach( $words as $item )
 					{
-						$word = $item["content"];
-						$word_id = $item["wordid"];
-						$alternative = $item->alternative;
+						$defects = Owad_Model::get_defect_entries();
+						$defects = Owad_Model::get_defect_entries_ids( $defects );
+						$word_id = $item["@attributes"]["wordid"];
 						
-						if( empty( $word ) ||
-							empty( $alternative[0] ) ||
-							empty( $alternative[1] ) ||
-							empty( $alternative[2] ) )
-							$defects[] = $word_id; 
-						
-						echo '<tr id="'. $word_id .'" class="'. (in_array( $word_id, $defects ) ? 'owad_defect' : 'owad_nodefect') .'"><td>'. $word.'</td><td><ul>';
+						echo '<tr id="'. $word_id .'" class="'. (in_array( $word_id, $defects ) ? 'owad_defect' : 'owad_nodefect') .'"><td>'. $item["@attributes"]["content"].'</td><td><ul>';
 						
 						$abc = array( 'a', 'b', 'c' );
 						for( $i=0; $i<3; $i++)
-							echo '<li>'. $abc[$i] .')&nbsp;&nbsp;&nbsp;'. $alternative[$i] .'</li>';
+							echo '<li>'. $abc[$i] .')&nbsp;&nbsp;&nbsp;'. $item["alternative"][$i] .'</li>';
 						
 						echo '</ul></td></tr>';
 					}
@@ -649,9 +632,11 @@ class Owad
 	function print_word( $word = NULL, $hide_question = false, $widget_id = '' )
 	{
 		if ( is_null( $word ) )
-			$word = Owad_Model::get_data();
+			$word = Owad_Model::get_newest_word();
 		
-		extract( $word );
+		//extract( $word );
+		$todays_word = $word["@attributes"]["content"];
+		$alternatives = $word["alternative"];
 		
 		$output .= '<div>';
 		
@@ -715,10 +700,10 @@ class Owad
 	function print_archive_words( $widget_id = '' )
 	{
 		$output = '';
-		$words = Owad_Model::fetch_archive_words();
+		$words = Owad_Model::get_cache_content();
 	
 		// outputs the select box with other words only if there are any
-		if ( !is_null( $sets ) )
+		if ( !is_null( $words ) )
 		{
 			$output .= __( 'Other words', 'owad' );
 			
@@ -727,8 +712,8 @@ class Owad
 				<select style="width:100%;" name="wordid" onchange="loadData('. $widget_id .');">
 				';
 			
-			foreach ( $words["word"] as $word )
-				$output .=  '<option value="'. $word["wordid"] .'">'. htmlentities( $word["todays_word"] ) .'</option>';			
+			foreach ( $words as $word )
+				$output .=  '<option value="'. $word["@attributes"]["wordid"] .'">'. htmlentities( $word["@attributes"]["content"] ) .'</option>';			
 				
 			$output .= '</select>';
 			$output .= '</form>';
