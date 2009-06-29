@@ -13,50 +13,46 @@ class Owad_Model
 	function get_data()
 	{
 		if ( !OWAD_USE_CACHE )
-			return $this->fetch_todays_word();
-			
-		if ( !file_exists( OWAD_CACHE_FILE ) )
-			file_put_contents( OWAD_CACHE_FILE , '<?xml version="1.0" encoding="UTF-8"?><words></words>');
-	
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		$words = self::object_to_array( $words );
-		$counts = count( $words );
+			return self::fetch_todays_word();
+
+		$words = self::get_cache_content();
 		
-		if ( $counts > 0 )
+		if ( ! is_null($words) )
 		{
-			$word = $words["word"][$counts - 1];
-			/*
-			$last_word_date_xml = $word->attributes()->date;
-			$last_word_id_xml = $word->attributes()->wordid;
+			$word = array_pop( $words );
 			
-			$new_word = $this->fetch_todays_word();
-			krumo( $new_word );
-			// compare the file's last word date with the last word date
-			//if ( ( $last_word_date_xml !=  $this->last_word_date() ) )
-			if ( false ) // ( $last_word_date_xml !=  $this->last_word_date() ) )
-			//if( $last_word_id_xml != $online_word["wordid"] )
+			if ( $word['@attributes']['date'] != self::fetch_word_date() )
 			{
-				//$new_word = $this->fetch_todays_word();
-				$this->save_set( $new_word, $words );
-				return $new_word;
-			}	
-			*/
-			
-			//$last_word = $this->extract_set( $word );
-			//return $last_word;
-			return $word;
+				$word = self::fetch_todays_word();
+				self::cache_word( $word );
+			}
 		}
 		else
 		{
-			/*
-			$set = $this->fetch_todays_word();
-			$this->save_set( $set, $words );
-			
-			return $set;
-			*/
-			return NULL;
+			$word = self::fetch_todays_word();
+			self::cache_word( $word );
 		}
+
+		return $word;	
+	}
 	
+	/**
+	 * Retrieves the cached words
+	 * 
+	 * @return array the words or null if there aren't any
+	 */
+	private static function get_cache_content()
+	{
+		if ( !file_exists( OWAD_CACHE_FILE ) )
+			file_put_contents( OWAD_CACHE_FILE , '<?xml version="1.0" encoding="UTF-8"?><words></words>');
+			
+		$words = simplexml_load_file( OWAD_CACHE_FILE );
+		$words = self::object_to_array( $words );
+		
+		if( !isset($words["word"]) )
+			return NULL;
+		else
+			return $words["word"];
 	}
 	
 	/**
@@ -65,7 +61,7 @@ class Owad_Model
 	 * @param string given "today's word" (it might be an older one)
 	 * @return string a date with the format YYYY-MM-DD
 	 */
-	function fetch_word_date( $word = '' )
+	private static function fetch_word_date( $word = '' )
 	{
 		/*
 
@@ -114,23 +110,13 @@ class Owad_Model
 	 * Caches the word.
 	 *
 	 * @param array word to be cached
-	 * @param SimpleXMLElement the cache content
 	 */
-	function save_set( $set, $words )
+	private static function cache_word( $word )
 	{
-		// TODO: Refactor
-		extract( $set );
-	
-		$new_word = $words->addChild('word');
-		$new_word->addAttribute( 'wordid' , $wordid );
-		$new_word->addAttribute( 'date' , $date );
-		$new_word->addAttribute( 'content' , $todays_word );
-		
-		for( $i = 0; $i < 3 ; $i++)
-			$new_word->addChild( 'alternative', $alternatives[$i] );
-		
-		$file = fopen( OWAD_CACHE_FILE, 'w' );
-		fwrite( $file , $words->asXML() );
+		$words["word"] = self::get_cache_content();
+		array_push( $words["word"], $word );
+		$words = self::array_to_xml( $words );
+		file_put_contents( OWAD_CACHE_FILE, $words->asXML() );
 	}
 	
 	/**
@@ -151,22 +137,6 @@ class Owad_Model
 				return $words;
 			else
 				return NULL;
-			
-			//$counts = count( $words );
-			
-			/*
-			if ( $counts >= 2)
-			{
-				for ( ; $counts > 0; $counts-- )
-				{
-					$word = $words->word[$counts-1];
-					$att = $word->attributes();
-					$sets[] = $this->extract_set( $word, $att );				
-				}
-			}
-			*/
-			
-			return $sets;
 		}
 	}
 	
@@ -176,7 +146,7 @@ class Owad_Model
 	 * @return array today's word
 	 * @see fetch_single_word
 	 */
-	function fetch_todays_word()
+	private static function fetch_todays_word()
 	{
 		return $this->fetch_single_word( "http://owad.de/index_en.php4" );
 	}
@@ -188,7 +158,7 @@ class Owad_Model
 	 * @param string word ID
 	 * @return array word
 	 */
-	function fetch_single_word( $url, $id = '')
+	private static function fetch_single_word( $url, $id = '')
 	{	
 		$page = wp_remote_fopen( $url.$id );
 	
@@ -376,7 +346,6 @@ class Owad_Model
 			{
 				$word = $obj->addChild( $key_word );
 			
-				//krumo( $val["@attributes"]);
 				foreach( $val["@attributes"] as $key => $val_att )
 					$word->addAttribute( $key, trim($val_att) );
 					
