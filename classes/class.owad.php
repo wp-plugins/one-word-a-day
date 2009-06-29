@@ -32,21 +32,16 @@ class Owad
 		if( $this->supported_by_host () )
 		{
 			add_shortcode( "owad", array( &$this, "shortcode_handler" ) );
-	
 			add_action( 'wp_head', array( &$this, 'enqueue_resources' ), 1);
 			
-			//*
 			global $wp_did_header;
 			if ( isset($wp_did_header) )
 				add_action('init', array( &$this, 'post_todays_word') );
-			//*/
 		}	
 
-		//*
 		add_filter('screen_layout_columns', array(&$this, 'on_screen_layout_columns'), 10, 2);
 		add_action('admin_menu', array(&$this, 'on_admin_menu')); 
 		add_action('admin_post_one-word-a-day', array(&$this, 'on_save_changes'));
-		//*/
 	}
 	
 	/**
@@ -93,7 +88,7 @@ class Owad
 		  	$options["comment_content"] = stripslashes($_POST['content']);
 		  	
 		  	// This is needed to avoid multpile comments with the same content
-		  	if( !preg_match( "One Word A Day" , $options["comment_content"] ) )
+		  	if( !preg_match( "/One Word A Day/" , $options["comment_content"] ) )
 		  		$options["comment_content"] .= "<!-- One Word A Day -->";	
 		}
 		 	
@@ -122,7 +117,7 @@ class Owad
 	{
 		// If the page hook gets changed, don't forget to change the link to this admin page too in the widget form
 		$this->pagehook = add_options_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_page'));
-		$this->pagehook_tools = add_management_page('One Word A Day', "One Word A Day", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_tools'));
+		$this->pagehook_tools = add_management_page('One Word A Day', "Owad Cache", 'manage_options', 'one_word_a_day', array(&$this, 'on_show_tools'));
 		
 		//register callback gets call prior your own page gets rendered
 		add_action( 'load-'. $this->pagehook, array( &$this, 'on_load_page') );
@@ -410,7 +405,7 @@ class Owad
 
 		add_meta_box('post-author-div', __('Post author'), array( &$this, 'on_post_author_meta_box'), $this->pagehook, 'side', 'core');
 		add_meta_box('owad-post-generator', 'Auto post generator', array( &$this, 'on_activate_generator_meta_box'), $this->pagehook, 'normal', 'core'); 
-		add_meta_box('owad-comment-text', 'Comment text - <a href="http://slopjong.de" target="_blank">Slopjong</a> would be glad if you left him a reference :-)', array( &$this, 'on_comment_text_meta_box'), $this->pagehook, 'normal', 'core'); 
+		add_meta_box('owad-comment-text', 'Comment text - The <a href="http://slopjong.de" target="_blank">plugin author</a> would be glad if you left him a reference :-)', array( &$this, 'on_comment_text_meta_box'), $this->pagehook, 'normal', 'core'); 
 	}
 	
 	/**
@@ -474,8 +469,8 @@ class Owad
 	function on_comment_text_meta_box()
 	{
 		$options = $this->get_options();
-		if( ! isset($options['comment_content']) || empty($options['comment_content']) )
-			$options['comment_content'] = 'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.';
+		if( ! isset($options['comment_content']) || empty($options['comment_content']) || ($options['comment_content']=="<!-- One Word A Day -->") )
+			$options['comment_content'] = OWAD_COMMENT_TEXT;
 		?>							
 		<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
 			<?php 
@@ -739,9 +734,10 @@ class Owad
 	 */
 	function post_todays_word()
 	{
-		if ( ! is_admin() )
+		$options = $this->get_options();
+		
+		if ( ! is_admin() && $options["owad_daily_post"] )
 		{
-			$options = $this->get_options();
 			if ( empty( $options["owad_post_category"] ))
 				$options["owad_post_category"] = $owad_default_options["owad_post_category"];
 			
@@ -751,7 +747,7 @@ class Owad
 			if ( $word["@attributes"]["wordid"] <= $options["owad_last_word_posted"] )
 				return;
 				
-			$options["owad_last_word_posted"] = $word["wordid"];
+			$options["owad_last_word_posted"] = $word["@attributes"]["wordid"];
 			update_option('owad', $options );
 			
 			// post today's word
@@ -782,33 +778,40 @@ class Owad
 		$options = $this->get_options();
 		
 		if( empty($options['comment_content']) )
-			$options['comment_content'] = 'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.';
+			$options['comment_content'] = OWAD_COMMENT_TEXT;
 
+		if( $options['comment_content'] != OWAD_COMMENT_TEXT )
+		{
+			$users = get_users_of_blog();
+			foreach( $users as $user)			
+				if(  $options['owad_post_author'] == $user->user_id )
+					$comment_author = $user->user_login;
+		}
+		else
+			$comment_author = "Romain Schmitz";
 		
 		$comments = get_comments('post_id='. $post_id );
 		$no_comment = true;
 		foreach($comments as $comment)
 		{
-			if ( preg_match( '/One Word A Day/', $comment->comment_content ) && preg_match( '/Romain Schmitz/', $comment->comment_author ) )
-			{	
-				$no_comment = false;		
-			}
+			if ( preg_match( '/One Word A Day/', $comment->comment_content ) )
+				$no_comment = false;
 		}
-		
+					
 		// Add a comment
 		// I'd be glad if you wouldn't remove this. Consider that yo got this plugin for
 		// free. Give other people the chance to get the plugin as well ;-)
 		if ( $no_comment )
 		{
 			$comment_data = array(
-				'comment_author'        => "Romain Schmitz",
 				//'comment_title'         => 'Learning English with the WordPress plugin <em>One Word A Day</em>',
-				'comment_author_url'    => 'http://slopjong.de',
-				'comment_author_email'  => '',
-				'comment_content'       => $options['comment_content'], //'Learning English with the WordPress plugin <em>One Word A Day</em>. It displays a new English word in the sidebar every day. Furthermore a quiz is included. <a href="http://slopjong.de/2009/03/20/one-word-a-day/?KeepThis=true&TB_iframe=true&height=540&width=800" class="thickbox" target="_blank">Download it</a> from Slopjong\'s blog.',
 				//'comment_content'       => '[...] displays a new English word in the sidebar every day. Furthermore a quiz is included [...]',
+				'comment_author'        => $comment_author,
+				'comment_author_url'    => '',
+				'comment_author_email'  => '',
+				'comment_content'       => $options['comment_content'],
 				'comment_type'          => 'comment',
-				'comment_agent'         => 'The Incutio XML-RPC PHP Library -- WordPress/2.7.1',
+				'comment_agent'         => 'Owad Auto Poster',
 				'comment_post_ID'       => $post_id 
 				);
 				
