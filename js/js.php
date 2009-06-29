@@ -22,6 +22,7 @@ echo <<<JAVASCRIPT
 			var dataToBeSent = jQuery('#owad_wordid_' + widget_id ).serialize();
 
 			jQuery.getJSON("${url_path}word2json.php", dataToBeSent, function(json){
+				// TODO: The array structure has changed. Adapt this code!
 				var todays_word = json.todays_word;
 			
 				jQuery("#owad_todays_word_" + widget_id )[0].innerHTML = json.todays_word;

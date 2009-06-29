@@ -168,13 +168,14 @@ class Owad
 	 */
 	function action_repair_defects()
 	{		
-		$entries = $this->get_all_entries();
+		$cached_words = Owad_Data::get_cache_content();
 		
-		foreach( $entries["word"] as $key => $entry )
+		foreach( $cached_words as $key => $cached_word )
 		{
-			if( $this->is_entry_defect( $entry ) )
+			if( Owad_Data::is_entry_defect( $cached_word ) )
 			{
-				$word = $this->repair_word( $entry["@attributes"]["wordid"] );
+				// TODO: This code might not work because other methods got refactored.
+				$word = $this->repair_word( $cached_word["@attributes"]["wordid"] );
 				if( $word[0] )
 					$entries["word"][$key] = $word[1];
 			}

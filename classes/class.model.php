@@ -41,7 +41,7 @@ class Owad_Model
 	 * 
 	 * @return array the words or null if there aren't any
 	 */
-	private static function get_cache_content()
+	public static function get_cache_content()
 	{
 		if ( !file_exists( OWAD_CACHE_FILE ) )
 			file_put_contents( OWAD_CACHE_FILE , '<?xml version="1.0" encoding="UTF-8"?><words></words>');
@@ -241,16 +241,6 @@ class Owad_Model
 		}		
 		
 		return $defects;
-	}
-	
-	/**
-	 * Returns all entries
-	 * @return array all entries
-	 */
-	public static function get_all_entries()
-	{
-		$words = simplexml_load_file( OWAD_CACHE_FILE );
-		return $words = $this->object_to_array( $words );
 	}
 
 	/**

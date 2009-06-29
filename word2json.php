@@ -6,10 +6,11 @@ include("classes/class.owad.php");
 // This is executed if an ajax request is sent.
 if( isset( $_GET["wordid"] ) )
 { 	
-	$set = Owad::get_word_by_id( intval( $_GET["wordid"] ) );
+	$word = Owad_Data::get_cached_word_by_id( intval( $_GET["wordid"] ) );
 	
-	if( $set == NULL )
+	if( $word == NULL )
 	{
+		// TODO: Adapt the array
 		echo json_encode( array(
 				  "wordid" => "",
 				  "date" => "",
@@ -18,7 +19,7 @@ if( isset( $_GET["wordid"] ) )
 				  ));
 	}
 	else
-		echo json_encode( $set );
+		echo json_encode( $word );
 	
 	exit();
 }
