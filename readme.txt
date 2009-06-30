@@ -4,7 +4,7 @@ Donate link:
 Tags: english,learn,learning,widget,sidebar
 Requires at least: 2.5
 Tested up to: 2.8
-Stable tag: 0.3.2.1
+Stable tag: 0.4
 
 Displays a new English word every day with a multiple choice quiz.
 
@@ -81,6 +81,7 @@ webspace configuration panel. If you're not sure ask your provider how to activa
 
 Not listed minor versions ( e.g. 0.2.1 ) include bugfixes or code improvements.
 
+* 0.4: Added few actions to repair or delete defect entries in the cache file.
 * 0.3: Added localization. This means that the question *What does # mean?* appears in your language. Added a visual editor to edit the comment posted by auto post generator.
 * 0.2: Use of the built-in cache. Previous words can be selected.
 * 0.1: Initial version just containing the quiz  
