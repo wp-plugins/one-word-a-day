@@ -4,7 +4,7 @@ Donate link:
 Tags: english,learn,learning,widget,sidebar
 Requires at least: 2.5
 Tested up to: 2.8
-Stable tag: 0.3.2.1
+Stable tag: 0.4
 
 Displays a new English word every day with a multiple choice quiz.
 
