@@ -16,8 +16,9 @@ class Owad_Model
 		
 		if ( ! is_null($words) )
 		{
+			//krumo($words);
 			$word = array_pop( $words );
-
+			
 			if ( $word['@attributes']['date'] != self::fetch_word_date() )
 			{
 				$word = self::fetch_todays_word();
@@ -49,7 +50,15 @@ class Owad_Model
 		if( !isset($words["word"]) )
 			return NULL;
 		else
+		{
+			// if there is just one word entry simplexml returns an associative array with the keys 
+			// @attributes and alternative. The caller function expects an array with numeric keys
+			$keys = array_keys( $words["word"] );
+			if( !is_numeric( $keys[0] ) )
+				return array( 0 => $words["word"] );
+
 			return $words["word"];
+		}
 
 	}
 	
@@ -61,7 +70,12 @@ class Owad_Model
 	// TODO: Is it possible to just get the reference?
 	private static function cache_word( $word )
 	{
-		$words["word"] = self::get_cache_content();
+		$cache = self::get_cache_content();
+		if( is_null( $cache ))
+			$words["word"] = array();
+		else
+			$words["word"] = $cache;
+			
 		array_push( $words["word"], $word );
 		$words = self::array_to_xml( $words );
 		file_put_contents( OWAD_CACHE_FILE, $words->asXML() );
