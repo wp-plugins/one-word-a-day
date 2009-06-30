@@ -171,9 +171,12 @@ class Owad_Model
 	{
 		$words = self::get_cache_content();
 		
-		foreach( $words as $word )
-			if ( $id == $word["@attributes"]["wordid"] )
-				return $word;
+		if( !is_null( $words ))
+		{		
+			foreach( $words as $word )
+				if ( $id == $word["@attributes"]["wordid"] )
+					return $word;
+		}
 		
 		return NULL;
 	}
