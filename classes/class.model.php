@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 	
 class Owad_Model
 {	
@@ -135,8 +135,8 @@ class Owad_Model
 			$alternatives[$i] = strip_tags( $alternatives[$i] );
 			// remove white spaces
 			$alternatives[$i] = trim( $alternatives[$i] );
-			// replace ’ by ' ( this does not work )
-			//$alternatives[$i] = preg_replace( "/’", "'", $alternatives[$i] );
+			// replace \u2019 by ' ( this does not work )
+			//$alternatives[$i] = preg_replace( "/", "'", $alternatives[$i] );
 			// convert into UTF8
 			$alternatives[$i] = mb_convert_encoding( $alternatives[$i], "UTF-8" );
 		}
@@ -188,9 +188,12 @@ class Owad_Model
 	{
 		$words = self::get_cache_content();
 		
-		foreach ( $words as $word )
-			if ( $date == $word["@attributes"]["date"] )
-				return $word;
+		if( !is_null( $words ))
+		{
+			foreach ( $words as $word )
+				if ( $date == $word["@attributes"]["date"] )
+					return $word;
+		}
 		
 		return NULL;
 	}

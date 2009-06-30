@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /************************************
  If you're a developer stop here. 
